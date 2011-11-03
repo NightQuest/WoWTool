@@ -139,6 +139,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
 	HANDLE hProcess = INVALID_HANDLE_VALUE;
 	PROCESSENTRY32 pe32;
+	DWORD dwPID = 0;
 
 	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if( hProcessSnap == INVALID_HANDLE_VALUE )
@@ -151,12 +152,15 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	do
 	{
 		if( !_tcscmp(pe32.szExeFile, _T("Wow.exe")) )
+		{
+			dwPID = pe32.th32ProcessID;
 			break;
+		}
 	} while( Process32Next(hProcessSnap, &pe32) );
 	CloseHandle( hProcessSnap );
 
 	// Attach WoWManager to Wow.exe
-	if( !wm->Attach(pe32.th32ProcessID) )
+	if( !dwPID || !wm->Attach(dwPID) )
 	{
 		delete wm;
 		MessageBox(NULL, _T("Cannot attach to WoW!\r\nPlease make sure WoW is running and fully logged in, and you're running as Administrator!"), _T("Error!"), MB_ICONERROR | MB_OK);
