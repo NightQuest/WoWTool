@@ -65,8 +65,9 @@ bool WoWManager::Attach(DWORD dwPID)
 	IMAGE_NT_HEADERS32 ntHeaders;
 	PBYTE baseAddr = NULL;
 	HANDLE hModuleSnap;
+	TCHAR *ptr = NULL;
 	SIZE_T size = 0;
-	
+
 	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPID);
 	if( hModuleSnap == INVALID_HANDLE_VALUE )
 		return false;
@@ -75,8 +76,22 @@ bool WoWManager::Attach(DWORD dwPID)
 	if( !Module32First(hModuleSnap, &me32) )
 		return false;
 
-	baseAddr = me32.modBaseAddr;
+	do
+	{
+		ptr = _tcsrchr(me32.szExePath, '\\');
+		if( ptr == NULL )
+			ptr = _tcsrchr(me32.szExePath, '/');
+
+		if( ptr != NULL )
+		{
+			ptr++;
+			if( !_tcscmp(ptr, _T("Wow.exe")) )
+				break;
+		}
+	} while( Module32Next(hModuleSnap, &me32) );
 	CloseHandle(hModuleSnap);
+
+	baseAddr = me32.modBaseAddr;
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
 	if( !hProcess )

@@ -3,6 +3,7 @@
 #include <tlhelp32.h>
 #include <tchar.h>
 
+#include "Defines.h"
 #include "WoWCamera.h"
 #include "WoWPlayer.h"
 #include "WoWManager.h"

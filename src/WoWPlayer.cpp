@@ -90,7 +90,8 @@ bool WoWPlayer::SetSpectateMode(bool bEnable)
 	return true;
 }
 
-// Sets whether or not the camera will collide with terrian, return true on success
+// Sets whether or not the camera will collide with terrian
+// Return true on success
 bool WoWPlayer::SetSpectateCollision(bool bEnable)
 {
 	SIZE_T size = 0;

@@ -191,6 +191,10 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath="..\src\Defines.h"
+			>
+		</File>
+		<File
 			RelativePath="..\src\main.cpp"
 			>
 		</File>

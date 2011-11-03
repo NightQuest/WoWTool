@@ -1,6 +1,3 @@
-#define ENGINE_SPEED_OF_ANIMATION	0x0048F750
-#define ENGINE_GAME_SPEED			0x0048F608
-
 class WoWManager
 {
 private:
@@ -21,7 +18,7 @@ public:
 	bool Attach(DWORD dwPID);
 	bool Launch(TCHAR *path, TCHAR *commandline);
 
-	// These are basic enable/disable/etc functions
+	// Engine functions
 	bool SetAnimationSpeed(double speed);
 	bool SetGameSpeed(double speed);
 
