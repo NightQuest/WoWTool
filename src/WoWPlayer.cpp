@@ -39,7 +39,8 @@ bool WoWPlayer::IsSpectating()
 		return false;
 }
 
-// Toggles spectate mode, returns true on success
+// Toggles spectate mode
+// Returns true on success
 bool WoWPlayer::SetSpectateMode(bool bEnable)
 {
 	PBYTE Plr = GetPlayerBase();
@@ -172,7 +173,7 @@ float WoWPlayer::GetPosZ()
 	return pZ;
 }
 
-// Returns the player's orientation
+// Returns the player's orientation (Tau)
 float WoWPlayer::GetPosO()
 {
 	PBYTE Plr = GetPlayerBase();
@@ -188,7 +189,8 @@ float WoWPlayer::GetPosO()
 	return pO;
 }
 
-// Returns a XYZO vector of the player's coordinates
+// Sets the XYZO coordinates of the player using a vector
+// Returns true on success
 bool WoWPlayer::SetPosition(Vec4 pos)
 {
 	SIZE_T size = 0;
@@ -203,7 +205,8 @@ bool WoWPlayer::SetPosition(Vec4 pos)
 	return true;
 }
 
-// Set the Player's X coordinate, returns true on success
+// Set the Player's X coordinate
+// Returns true on success
 bool WoWPlayer::SetPosX(float newX)
 {
 	SIZE_T size = 0;
@@ -218,7 +221,8 @@ bool WoWPlayer::SetPosX(float newX)
 	return true;
 }
 
-// Set the Player's Y coordinate, returns true on success
+// Set the Player's Y coordinate
+// Returns true on success
 bool WoWPlayer::SetPosY(float newY)
 {
 	SIZE_T size = 0;
@@ -233,7 +237,8 @@ bool WoWPlayer::SetPosY(float newY)
 	return true;
 }
 
-// Set the Player's X coordinate, returns true on success
+// Set the Player's X coordinate
+// Returns true on success
 bool WoWPlayer::SetPosZ(float newZ)
 {
 	SIZE_T size = 0;
@@ -248,7 +253,8 @@ bool WoWPlayer::SetPosZ(float newZ)
 	return true;
 }
 
-// Set the Player's orientation, returns true on success
+// Set the Player's orientation (Tau)
+// Returns true on success
 bool WoWPlayer::SetPosO(float newO)
 {
 	SIZE_T size = 0;

@@ -130,7 +130,8 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
-// Sets the speed of animations, default: 1000
+// Sets the speed of animations
+// Default: 1000
 bool WoWManager::SetAnimationSpeed(double speed)
 {
 	if( !hProcess )
@@ -141,6 +142,7 @@ bool WoWManager::SetAnimationSpeed(double speed)
 }
 
 // Sets the game speed of the game (speed of everything from time, animations, etc)
+// Default: 0.00100000004749
 bool WoWManager::SetGameSpeed(double speed)
 {
 	if( !hProcess )
