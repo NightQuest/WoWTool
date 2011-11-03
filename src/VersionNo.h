@@ -1,7 +1,0 @@
-#define MAJOR_VERSION 	1
-#define MINOR_VERSION 	0
-#define BUILD_NO		116
-#define REVISION_NO 	0
-
-#define VERSION MAJOR_VERSION##,##MINOR_VERSION##,##REVISION_NO##,##BUILD_NO
-#define STRVERSION "1, 0, 0, 116"

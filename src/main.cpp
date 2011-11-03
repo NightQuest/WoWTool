@@ -42,6 +42,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdSho
 		return 0;
 	}
 
+	// Create a new instance of the WoWManager, which will also give us debug permissions
 	wm = new WoWManager();
 
 	ShowWindow( hwndMain, nCmdShow );

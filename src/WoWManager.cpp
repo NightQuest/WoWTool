@@ -1,5 +1,6 @@
 #include "main.h"
 
+// Constructor for WoWManager will give the program SeDebug privileges
 WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), baseAddress(NULL)
 {
 	HANDLE hToken = INVALID_HANDLE_VALUE;
@@ -34,6 +35,7 @@ WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), baseAddress(NULL)
 	CloseHandle(hToken);
 }
 
+// Destructor for WoWManager, will remove SeDebug from the programs privilege level and Detach the program from WoW
 WoWManager::~WoWManager()
 {
 	HANDLE hToken = INVALID_HANDLE_VALUE;

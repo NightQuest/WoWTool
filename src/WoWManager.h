@@ -22,6 +22,6 @@ public:
 	bool SetAnimationSpeed(double speed);
 	bool SetGameSpeed(float speed);
 
-	// Misc.
+	// Returns an instance to the WoWPlayer class that contains Player specific functions
 	WoWPlayer *GetPlayer() { return plr; }
 };
