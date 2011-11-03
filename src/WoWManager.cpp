@@ -1,7 +1,7 @@
 #include "main.h"
 
 // Constructor for WoWManager will give the program SeDebug privileges
-WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), baseAddress(NULL)
+WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress(NULL)
 {
 	HANDLE hToken = INVALID_HANDLE_VALUE;
 
@@ -58,7 +58,7 @@ WoWManager::~WoWManager()
 }
 
 // Attaches the class to an already-loaded instance of WoW.
-bool WoWManager::Attach(DWORD dwPID)
+bool WoWManager::Attach(DWORD dwInPID)
 {
 	MODULEENTRY32 me32;
 	IMAGE_DOS_HEADER dosHeader;
@@ -68,7 +68,7 @@ bool WoWManager::Attach(DWORD dwPID)
 	TCHAR *ptr = NULL;
 	SIZE_T size = 0;
 
-	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPID);
+	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwInPID);
 	if( hModuleSnap == INVALID_HANDLE_VALUE )
 		return false;
 
@@ -93,7 +93,7 @@ bool WoWManager::Attach(DWORD dwPID)
 
 	baseAddr = me32.modBaseAddr;
 
-	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
+	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwInPID);
 	if( !hProcess )
 		return false;
 
@@ -108,6 +108,7 @@ bool WoWManager::Attach(DWORD dwPID)
 		return false;
 	}
 
+	dwPID = dwInPID;
 	baseAddress = reinterpret_cast<PBYTE>(ntHeaders.OptionalHeader.ImageBase + ntHeaders.OptionalHeader.BaseOfCode);
 	plr = new WoWPlayer(hProcess, baseAddress);
 	return (hProcess != INVALID_HANDLE_VALUE);
@@ -138,6 +139,7 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 		else
 		{
 			hProcess = pi.hProcess;
+			dwPID = pi.dwProcessId;
 			WaitForInputIdle(pi.hProcess, 5000);
 		}
 	}
@@ -145,11 +147,50 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
+TCHAR *WoWManager::GetProgramLocation()
+{
+	MODULEENTRY32 me32;
+	HANDLE hModuleSnap;
+	TCHAR *ptr = NULL;
+	TCHAR *final = NULL;
+
+	if( !hProcess || !dwPID )
+		return NULL;
+
+	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPID);
+	if( hModuleSnap == INVALID_HANDLE_VALUE )
+		return NULL;
+
+	me32.dwSize = sizeof(MODULEENTRY32);
+	if( !Module32First(hModuleSnap, &me32) )
+		return NULL;
+
+	do
+	{
+		ptr = _tcsrchr(me32.szExePath, '\\');
+		if( ptr == NULL )
+			ptr = _tcsrchr(me32.szExePath, '/');
+
+		if( ptr != NULL )
+		{
+			ptr++;
+			if( !_tcscmp(ptr, _T("Wow.exe")) )
+			{
+				final = _tcsdup(me32.szExePath);
+				break;
+			}
+		}
+	} while( Module32Next(hModuleSnap, &me32) );
+	CloseHandle(hModuleSnap);
+
+	return final;
+}
+
 // Sets the speed of animations
 // Default: 1000
 bool WoWManager::SetAnimationSpeed(double speed)
 {
-	if( !hProcess )
+	if( !hProcess || !dwPID )
 		return false;
 
 	SIZE_T size;
@@ -160,7 +201,7 @@ bool WoWManager::SetAnimationSpeed(double speed)
 // Default: 0.00100000004749
 bool WoWManager::SetGameSpeed(double speed)
 {
-	if( !hProcess )
+	if( !hProcess || !dwPID )
 		return false;
 
 	SIZE_T size;

@@ -1,7 +1,10 @@
+#pragma once
+
 class WoWManager
 {
 private:
 	HANDLE hProcess;
+	DWORD dwPID;
 	PBYTE baseAddress;
 
 	WoWPlayer *plr;
@@ -17,6 +20,8 @@ public:
 	// Basic utility functions
 	bool Attach(DWORD dwPID);
 	bool Launch(TCHAR *path, TCHAR *commandline);
+	TCHAR *GetProgramLocation();
+
 
 	// Engine functions
 	bool SetAnimationSpeed(double speed);

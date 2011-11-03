@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\res"
-				PreprocessorDefinitions="_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS;_DEBUG"
+				PreprocessorDefinitions="_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -125,7 +125,6 @@
 				EnableIntrinsicFunctions="false"
 				FavorSizeOrSpeed="2"
 				AdditionalIncludeDirectories="..\src\res"
-				PreprocessorDefinitions="_CRT_NON_CONFORMING_SWPRINTFS;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="1"
@@ -187,7 +186,15 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 			<File
+				RelativePath="..\src\res\resource.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\res\World of Warcraft.ico"
+				>
+			</File>
+			<File
+				RelativePath="..\src\res\WoWTool.rc"
 				>
 			</File>
 		</Filter>
