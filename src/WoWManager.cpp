@@ -147,6 +147,7 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
+// Returns the location of the attached copy of WoW
 TCHAR *WoWManager::GetProgramLocation()
 {
 	MODULEENTRY32 me32;
