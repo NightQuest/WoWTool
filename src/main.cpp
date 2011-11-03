@@ -18,7 +18,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdSho
 	wc.hCursor       = LoadCursor(NULL, IDC_ARROW);
 	wc.hbrBackground = (HBRUSH)(COLOR_WINDOW);
 	wc.lpszMenuName  = NULL;
-	wc.lpszClassName = _T("WoWCToolApp");
+	wc.lpszClassName = _T("WoWToolApp");
 	wc.hIconSm       = (HICON)LoadImage(hInstance, IDI_APPLICATION, IMAGE_ICON, 16, 16, 0);
 
 	if( !RegisterClassEx(&wc) )
@@ -30,7 +30,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdSho
 	int width = 250;
 	int height = 100;
 	hwndMain = CreateWindowEx( NULL,
-		_T("WoWCToolApp"), _T("WoW Camera Tool"),
+		_T("WoWToolApp"), _T("WoW Tool"),
 		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
 		((GetSystemMetrics(SM_CXSCREEN)/2)-(width/2)), ((GetSystemMetrics(SM_CYSCREEN)/2)-(height/2)), // center
 		width, height,
