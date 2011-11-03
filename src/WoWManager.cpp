@@ -98,7 +98,7 @@ bool WoWManager::Attach(DWORD dwPID)
 	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
-// Launches an instance of WoW with the supplied commandline arguments, and then attaches the calss to it.
+// Launches an instance of WoW with the supplied commandline arguments, and then attaches the class to it.
 bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 {
 	if( path == NULL || *path == NULL )
@@ -128,4 +128,24 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	}
 
 	return (hProcess != INVALID_HANDLE_VALUE);
+}
+
+// Sets the speed of animations, default: 1000
+bool WoWManager::SetAnimationSpeed(double speed)
+{
+	if( !hProcess )
+		return false;
+
+	SIZE_T size;
+	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION), &speed, sizeof(double), &size) && size == sizeof(double));
+}
+
+// Sets the game speed of the game (speed of everything from time, animations, etc)
+bool WoWManager::SetGameSpeed(double speed)
+{
+	if( !hProcess )
+		return false;
+
+	SIZE_T size;
+	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_GAME_SPEED), &speed, sizeof(double), &size) && size == sizeof(double));
 }

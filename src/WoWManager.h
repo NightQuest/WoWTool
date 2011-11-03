@@ -1,3 +1,6 @@
+#define ENGINE_SPEED_OF_ANIMATION	0x0048F750
+#define ENGINE_GAME_SPEED			0x0048F608
+
 class WoWManager
 {
 private:
@@ -20,7 +23,7 @@ public:
 
 	// These are basic enable/disable/etc functions
 	bool SetAnimationSpeed(double speed);
-	bool SetGameSpeed(float speed);
+	bool SetGameSpeed(double speed);
 
 	// Returns an instance to the WoWPlayer class that contains Player specific functions
 	WoWPlayer *GetPlayer() { return plr; }

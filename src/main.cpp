@@ -126,7 +126,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 						MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
 						break;
 					}
-					
+
 					// Toggle spectate mode
 					if( !wm->GetPlayer()->SetSpectateMode(!wm->GetPlayer()->IsSpectating()) )
 						MessageBox(NULL, _T("Cannot Toggle Spectate Mode!"), _T("Error!"), MB_ICONERROR|MB_OK);

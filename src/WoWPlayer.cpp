@@ -22,7 +22,7 @@ bool WoWPlayer::IsSpectating()
 
 	PBYTE SpectatePtr = NULL;
 	DWORD SpectateMode = NULL;
-	DWORD size = 0;
+	SIZE_T size = 0;
 
 	// Read the Spectate Mode pointer
 	// The pointer to the spectate mode class is located 0x1190 bytes from the player base
@@ -48,7 +48,7 @@ bool WoWPlayer::SetSpectateMode(bool bEnable)
 
 	PBYTE SpectatePtr = NULL;
 	DWORD SpectateMode = NULL;
-	DWORD size = 0;
+	SIZE_T size = 0;
 
 	// Read the Spectate Mode pointer
 	// The pointer to the spectate mode class is located 0x1190 bytes from the player base
@@ -92,7 +92,7 @@ bool WoWPlayer::SetSpectateMode(bool bEnable)
 // Sets whether or not the camera will collide with terrian, return true on success
 bool WoWPlayer::SetSpectateCollision(bool bEnable)
 {
-	DWORD size = 0;
+	SIZE_T size = 0;
 	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_COLLISION), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 	return true;
@@ -101,7 +101,7 @@ bool WoWPlayer::SetSpectateCollision(bool bEnable)
 // Return whether or not the spectate camera will collide with terrian
 bool WoWPlayer::IsSpectateModeCollidable()
 {
-	DWORD size;
+	SIZE_T size;
 	bool bCollision = false;
 
 	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_COLLISION), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
@@ -188,6 +188,21 @@ float WoWPlayer::GetPosO()
 	return pO;
 }
 
+// Returns a XYZO vector of the player's coordinates
+bool WoWPlayer::SetPosition(Vec4 pos)
+{
+	SIZE_T size = 0;
+	PBYTE Plr = GetPlayerBase();
+	if( Plr == NULL )
+		return false;
+
+	// Set the current position of the player
+	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &pos, sizeof(Vec4), &size) || size != sizeof(Vec4) )
+		return false;
+
+	return true;
+}
+
 // Set the Player's X coordinate, returns true on success
 bool WoWPlayer::SetPosX(float newX)
 {
@@ -197,9 +212,10 @@ bool WoWPlayer::SetPosX(float newX)
 		return false;
 
 	// Set the current position of the player's X coordinate
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &newX, sizeof(float), &size);
+	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &newX, sizeof(float), &size) || size != sizeof(float) )
+		return false;
 
-	return (size == sizeof(float));
+	return true;
 }
 
 // Set the Player's Y coordinate, returns true on success
@@ -211,9 +227,10 @@ bool WoWPlayer::SetPosY(float newY)
 		return false;
 
 	// Set the current position of the player's Y coordinate
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_Y_OFFSET), &newY, sizeof(float), &size);
+	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_Y_OFFSET), &newY, sizeof(float), &size) || size != sizeof(float) )
+		return false;
 
-	return (size == sizeof(float));
+	return true;
 }
 
 // Set the Player's X coordinate, returns true on success
@@ -225,9 +242,10 @@ bool WoWPlayer::SetPosZ(float newZ)
 		return false;
 
 	// Set the current position of the player's Z coordinate
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_Z_OFFSET), &newZ, sizeof(float), &size);
+	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_Z_OFFSET), &newZ, sizeof(float), &size) || size != sizeof(float) )
+		return false;
 
-	return (size == sizeof(float));
+	return true;
 }
 
 // Set the Player's orientation, returns true on success
@@ -239,7 +257,8 @@ bool WoWPlayer::SetPosO(float newO)
 		return false;
 
 	// Set the current position of the player's orientation
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_O_OFFSET), &newO, sizeof(float), &size);
+	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_O_OFFSET), &newO, sizeof(float), &size) || size != sizeof(float) )
+		return false;
 
-	return (size == sizeof(float));
+	return true;
 }
