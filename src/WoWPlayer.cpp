@@ -26,14 +26,14 @@ bool WoWPlayer::IsSpectating()
 
 	// Read the Spectate Mode pointer
 	// The pointer to the spectate mode class is located 0x1190 bytes from the player base
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_SPECTATE_MODE_OFFSET_ONE), &SpectatePtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FLAGS_OFFSET_ONE), &SpectatePtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
 		return false;
 
 	// Read 8 bytes past the spectate mode class base to retrieve the bitmask that allows us to enable/disable it
-	if( !ReadProcessMemory(hProcess, (SpectatePtr + PLAYER_SPECTATE_MODE_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+	if( !ReadProcessMemory(hProcess, (SpectatePtr + PLAYER_FLAGS_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
 		return false;
 
-	if( SpectateMode & PLAYER_SPECTATE_MODE_VALUE )
+	if( SpectateMode & (PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS) )
 		return true;
 	else
 		return false;
@@ -53,11 +53,11 @@ bool WoWPlayer::SetSpectateMode(bool bEnable)
 
 	// Read the Spectate Mode pointer
 	// The pointer to the spectate mode class is located 0x1190 bytes from the player base
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_SPECTATE_MODE_OFFSET_ONE), &SpectatePtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FLAGS_OFFSET_ONE), &SpectatePtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
 		return false;
 
 	// Read 8 bytes past the spectate mode class base to retrieve the bitmask that allows us to enable/disable it
-	if( !ReadProcessMemory(hProcess, (SpectatePtr + PLAYER_SPECTATE_MODE_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+	if( !ReadProcessMemory(hProcess, (SpectatePtr + PLAYER_FLAGS_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
 		return false;
 
 	if( bEnable )
@@ -76,15 +76,15 @@ bool WoWPlayer::SetSpectateMode(bool bEnable)
 		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_Z), &pos.Z, sizeof(float), &size) || size != sizeof(float) )
 			return false;
 
-		SpectateMode |= PLAYER_SPECTATE_MODE_VALUE;
+		SpectateMode |= (PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS);
 	}
 	else
 	{
-		SpectateMode &= ~PLAYER_SPECTATE_MODE_VALUE;
+		SpectateMode &= ~(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS);
 	}
 
 	// Write SpectateMode back to memory, to either enable or disable it.
-	if( !WriteProcessMemory(hProcess, (SpectatePtr + PLAYER_SPECTATE_MODE_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+	if( !WriteProcessMemory(hProcess, (SpectatePtr + PLAYER_FLAGS_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
 		return false;
 
 	return true;
@@ -204,6 +204,14 @@ bool WoWPlayer::SetPosition(Vec4 pos)
 		return false;
 
 	return true;
+}
+
+// Sets the XYZO coordinates of the player
+// Returns true on success
+bool WoWPlayer::SetPosition(float X, float Y, float Z, float O)
+{
+	Vec4 pos = { X, Y, Z, O };
+	return SetPosition(pos);
 }
 
 // Set the Player's X coordinate
