@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WoWTool", "WoWTool.vcproj", "{B21C8CFF-2CED-4DDB-91DF-7889EC5BC4AE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{54694D8E-3B79-4EC4-AE9B-9A9F74D968F9} = {54694D8E-3B79-4EC4-AE9B-9A9F74D968F9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BuildChanger", "BuildChanger.vcproj", "{54694D8E-3B79-4EC4-AE9B-9A9F74D968F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B21C8CFF-2CED-4DDB-91DF-7889EC5BC4AE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B21C8CFF-2CED-4DDB-91DF-7889EC5BC4AE}.Debug|Win32.Build.0 = Debug|Win32
+		{B21C8CFF-2CED-4DDB-91DF-7889EC5BC4AE}.Release|Win32.ActiveCfg = Release|Win32
+		{B21C8CFF-2CED-4DDB-91DF-7889EC5BC4AE}.Release|Win32.Build.0 = Release|Win32
+		{54694D8E-3B79-4EC4-AE9B-9A9F74D968F9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{54694D8E-3B79-4EC4-AE9B-9A9F74D968F9}.Debug|Win32.Build.0 = Debug|Win32
+		{54694D8E-3B79-4EC4-AE9B-9A9F74D968F9}.Release|Win32.ActiveCfg = Release|Win32
+		{54694D8E-3B79-4EC4-AE9B-9A9F74D968F9}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
