@@ -6,15 +6,20 @@ private:
 	HANDLE hProcess;
 	PBYTE baseAddress;
 	PBYTE GetPlayerBase();
+	PBYTE GetPlayerFlagsBase();
 
 public:
 	WoWPlayer(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}
 	~WoWPlayer() {}
 
-	bool SetSpectateMode(bool bEnable);
-	bool IsSpectating();
-	bool SetSpectateCollision(bool bEnable);
-	bool IsSpectateModeCollidable();
+	bool HasFlags(DWORD flags);
+	bool SetFlags(DWORD flags);
+	bool RemoveFlags(DWORD flags);
+	DWORD GetFlags();
+	bool SetCommentatorMode(bool bEnable);
+	bool IsInCommentatorMode();
+	bool SetCommentatorCameraCollision(bool bEnable);
+	bool IsCommentatorCameraCollidable();
 	Vec4 GetPosition();
 	float GetPosX();
 	float GetPosY();

@@ -1,6 +1,6 @@
 #include "main.h"
 
-HWND hwndMain, hwndSpectateCheckbox, hwndSpectateCollisionCheckbox;
+HWND hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox;
 WoWManager *wm;
 
 BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
@@ -12,14 +12,6 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdSho
 
 	if (!InitInstance(hInstance, nCmdShow))
 		return FALSE;
-
-	// Create a new instance of the WoWManager, which will also give us debug permissions
-	wm = new WoWManager();
-	if( !wm )
-	{
-		MessageBox( NULL, _T("Cannot initialize WoWManager.\r\nPlease make sure you're running as Administrator."), _T("Error!"), MB_ICONERROR | MB_OK );
-		return 0;
-	}
 
 	BOOL bRet;
 	while( (bRet = GetMessage(&Msg, NULL, 0, 0)) != 0 && bRet != -1 )
@@ -72,6 +64,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	if( !hwndMain )
 		return FALSE;
 
+	// Create a new instance of the WoWManager, which will also give us debug permissions
+	wm = new WoWManager();
+	if( !wm )
+	{
+		MessageBox( NULL, _T("Cannot initialize WoWManager.\r\nPlease make sure you're running as Administrator."), _T("Error!"), MB_ICONERROR | MB_OK );
+		return 0;
+	}
+
 	ShowWindow( hwndMain, nCmdShow );
 	UpdateWindow( hwndMain );
 	return TRUE;
@@ -118,17 +118,17 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		PostMessage(hwnd, WM_CLOSE, 0, 0);
 	}
 
-	hwndSpectateCheckbox = CreateWindowEx(NULL,
-		_T("Button"), _T("Spectate"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		10, 5, 70, 23, hwnd, (HMENU)111, NULL, NULL);
+	hwndCommentatorCheckbox = CreateWindowEx(NULL,
+		_T("Button"), _T("Commentator Mode"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		10, 5, 120, 23, hwnd, (HMENU)111, NULL, NULL);
 
-	hwndSpectateCollisionCheckbox = CreateWindowEx(NULL,
+	hwndCommentatorCollisionCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Collision"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
 		10, 30, 70, 23, hwnd, (HMENU)112, NULL, NULL);
 
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
-	SendMessage(hwndSpectateCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
-	SendMessage(hwndSpectateCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndCommentatorCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndCommentatorCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
 	return FALSE;
 }
@@ -141,7 +141,13 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	PROCESSENTRY32 pe32;
 	DWORD dwPID = 0;
 
-	hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	do
+	{
+		hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if( hProcessSnap != INVALID_HANDLE_VALUE )
+			break;
+	} while( GetLastError() == ERROR_BAD_LENGTH );
+
 	if( hProcessSnap == INVALID_HANDLE_VALUE )
 		return FALSE;
 
@@ -163,14 +169,14 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	if( !dwPID || !wm->Attach(dwPID) )
 	{
 		delete wm;
-		MessageBox(NULL, _T("Cannot attach to WoW!\r\nPlease make sure WoW is running and fully logged in, and you're running as Administrator!"), _T("Error!"), MB_ICONERROR | MB_OK);
+		MessageBox(NULL, _T("Cannot attach to WoW!\r\nPlease make sure that WoW is running and fully logged in, and you're running this tool as Administrator!"), _T("Error!"), MB_ICONERROR | MB_OK);
 		PostMessage(hwnd, WM_CLOSE, 0, 0);
 		return FALSE;
 	}
 
 	// Read the game's memory, and fill in the values for it
-	SendMessage(hwndSpectateCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsSpectating() ? BST_CHECKED : BST_UNCHECKED), NULL);
-	SendMessage(hwndSpectateCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsSpectateModeCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndCommentatorCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsInCommentatorMode() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
 
 	return FALSE;
 }
@@ -187,9 +193,9 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 				break;
 			}
 
-			// Toggle spectate mode
-			if( !wm->GetPlayer()->SetSpectateMode(!wm->GetPlayer()->IsSpectating()) )
-				MessageBox(NULL, _T("Cannot Toggle Spectate Mode!"), _T("Error!"), MB_ICONERROR|MB_OK);
+			// Toggle commentator mode
+			if( !wm->GetPlayer()->SetCommentatorMode(SendMessage(hwndCommentatorCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
+				MessageBox(NULL, _T("Cannot Toggle Commentator Mode!"), _T("Error!"), MB_ICONERROR|MB_OK);
 		}
 		break;
 
@@ -201,9 +207,9 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 				break;
 			}
 
-			// Toggle spectate mode's camera collision
-			if( !wm->GetPlayer()->SetSpectateCollision(!wm->GetPlayer()->IsSpectateModeCollidable()) )
-				MessageBox(NULL, _T("Cannot Toggle Spectate Mode's Collision!"), _T("Error!"), MB_ICONERROR|MB_OK);
+			// Toggle commentator mode's camera collision
+			if( !wm->GetPlayer()->SetCommentatorCameraCollision(SendMessage(hwndCommentatorCollisionCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
+				MessageBox(NULL, _T("Cannot Toggle Commentator Mode's Collision!"), _T("Error!"), MB_ICONERROR|MB_OK);
 		}
 		break;
 	}

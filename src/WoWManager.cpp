@@ -65,10 +65,17 @@ bool WoWManager::Attach(DWORD dwInPID)
 	IMAGE_NT_HEADERS32 ntHeaders;
 	PBYTE baseAddr = NULL;
 	HANDLE hModuleSnap;
+	DWORD lastError = NULL;
 	TCHAR *ptr = NULL;
 	SIZE_T size = 0;
 
-	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwInPID);
+	do
+	{
+		hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE|TH32CS_SNAPMODULE32, dwInPID);
+		if( hModuleSnap != INVALID_HANDLE_VALUE )
+			break;
+	} while( GetLastError() == ERROR_BAD_LENGTH );
+
 	if( hModuleSnap == INVALID_HANDLE_VALUE )
 		return false;
 

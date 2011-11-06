@@ -13,52 +13,105 @@ PBYTE WoWPlayer::GetPlayerBase()
 	return plr;
 }
 
-// Returns whether or not the player is in spectate mode
-bool WoWPlayer::IsSpectating()
+// Returns the base address of the player flags in memory - INTERNAL
+PBYTE WoWPlayer::GetPlayerFlagsBase()
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
 		return false;
 
-	PBYTE SpectatePtr = NULL;
-	DWORD SpectateMode = NULL;
+	PBYTE FlagsPtr = NULL;
 	SIZE_T size = 0;
 
-	// Read the Spectate Mode pointer
-	// The pointer to the spectate mode class is located 0x1190 bytes from the player base
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FLAGS_OFFSET_ONE), &SpectatePtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
-		return false;
+	// Read the Player Flags pointer
+	// The pointer to the player flags is located 0x1190 bytes from the player base
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FLAGS_OFFSET_ONE), &FlagsPtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+		return NULL;
 
-	// Read 8 bytes past the spectate mode class base to retrieve the bitmask that allows us to enable/disable it
-	if( !ReadProcessMemory(hProcess, (SpectatePtr + PLAYER_FLAGS_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
-		return false;
-
-	if( SpectateMode & (PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS) )
-		return true;
-	else
-		return false;
+	// Return 8 bytes past the base to be able to retrieve the player flags bitmask
+	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAGS_OFFSET_TWO) : NULL);
 }
 
-// Toggles spectate mode
+// Returns the player flags bitmask, or NULL on failure
+DWORD WoWPlayer::GetFlags()
+{
+	PBYTE FlagsPtr = GetPlayerFlagsBase();
+	DWORD PlrFlags = NULL;
+	SIZE_T size = 0;
+
+	if( !FlagsPtr )
+		return NULL;
+
+	// Read 8 bytes past the base to retrieve the player flags bitmask
+	if( !ReadProcessMemory(hProcess, FlagsPtr, &PlrFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return NULL;
+
+	return PlrFlags;
+}
+
+// Checks to see if the passed bitmask exists in the player flags bitmask.
+// Returns true on success.
+bool WoWPlayer::HasFlags(DWORD flags) { return (GetFlags() & flags) > 0; }
+
+// Does a bitwise OR operation on the player flags, adding whatever is passed.
+// Returns true on success.
+bool WoWPlayer::SetFlags(DWORD flags)
+{
+	PBYTE FlagsPtr = GetPlayerFlagsBase();
+	DWORD PlrFlags = NULL;
+	SIZE_T size = 0;
+
+	if( !FlagsPtr )
+		return false;
+
+	// Read the player flags and do a bitwise OR on them, adding the passed flags to them
+	PlrFlags = GetFlags() | flags;
+
+	// Write the new flags back to the player flags in memory
+	if( !WriteProcessMemory(hProcess, FlagsPtr, &PlrFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return false;
+
+	return true;
+}
+
+// Does a bitwise inverse OR on the player flags, removing whatever is passed.
+// Returns true on success.
+bool WoWPlayer::RemoveFlags(DWORD flags)
+{
+	PBYTE FlagsPtr = GetPlayerFlagsBase();
+	DWORD PlrFlags = NULL;
+	SIZE_T size = 0;
+
+	if( !FlagsPtr )
+		return false;
+
+	// Read the player flags and do a bitwise inverse AND on them, removing the passed flags from them
+	PlrFlags = GetFlags() & ~flags;
+
+	// Write the new flags back to the player flags in memory
+	if( !WriteProcessMemory(hProcess, FlagsPtr, &PlrFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return false;
+
+	return true;
+}
+
+// Returns whether or not the player is in commentator mode
+bool WoWPlayer::IsInCommentatorMode()
+{
+	return HasFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS);
+}
+
+// Toggles commentator mode
 // Returns true on success
-bool WoWPlayer::SetSpectateMode(bool bEnable)
+bool WoWPlayer::SetCommentatorMode(bool bEnable)
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
 		return false;
 
-	PBYTE SpectatePtr = NULL;
-	DWORD SpectateMode = NULL;
+	// Retrieve the player flags
+	DWORD PlrFlags = GetFlags();
 	SIZE_T size = 0;
-
-	// Read the Spectate Mode pointer
-	// The pointer to the spectate mode class is located 0x1190 bytes from the player base
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FLAGS_OFFSET_ONE), &SpectatePtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
-		return false;
-
-	// Read 8 bytes past the spectate mode class base to retrieve the bitmask that allows us to enable/disable it
-	if( !ReadProcessMemory(hProcess, (SpectatePtr + PLAYER_FLAGS_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
-		return false;
 
 	if( bEnable )
 	{
@@ -68,45 +121,45 @@ bool WoWPlayer::SetSpectateMode(bool bEnable)
 		// Increase the Z axis so the camera doesn't appear at ground level
 		pos.Z += 10.0f;
 
-		// Copy the player's position to the spectate camera's position, with a slight offset to Z
-		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_X), &pos.X, sizeof(float), &size) || size != sizeof(float) )
+		// Copy the player's position to the commentator camera's position, with a slight offset to Z
+		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_X), &pos.X, sizeof(float), &size) || size != sizeof(float) )
 			return false;
-		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_Y), &pos.Y, sizeof(float), &size) || size != sizeof(float) )
+		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Y), &pos.Y, sizeof(float), &size) || size != sizeof(float) )
 			return false;
-		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_Z), &pos.Z, sizeof(float), &size) || size != sizeof(float) )
+		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Z), &pos.Z, sizeof(float), &size) || size != sizeof(float) )
 			return false;
 
-		SpectateMode |= (PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS);
+		// Write the player flags back to memory, to either enable or disable commentator mode
+		if( !SetFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS) )
+			return false;
 	}
 	else
 	{
-		SpectateMode &= ~(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS);
+		// Write the player flags back to memory, to either enable or disable commentator mode
+		if( !RemoveFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS) )
+			return false;
 	}
 
-	// Write SpectateMode back to memory, to either enable or disable it.
-	if( !WriteProcessMemory(hProcess, (SpectatePtr + PLAYER_FLAGS_OFFSET_TWO), &SpectateMode, sizeof(DWORD), &size) || size != sizeof(DWORD) )
-		return false;
-
 	return true;
 }
 
-// Sets whether or not the camera will collide with terrian
-// Return true on success
-bool WoWPlayer::SetSpectateCollision(bool bEnable)
+// Sets whether or not the commentator camera will collide with terrian
+// Returns true on success
+bool WoWPlayer::SetCommentatorCameraCollision(bool bEnable)
 {
 	SIZE_T size = 0;
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_COLLISION), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_COLLISION), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 	return true;
 }
 
-// Return whether or not the spectate camera will collide with terrian
-bool WoWPlayer::IsSpectateModeCollidable()
+// Returns whether or not the commentator camera will collide with terrian
+bool WoWPlayer::IsCommentatorCameraCollidable()
 {
 	SIZE_T size;
 	bool bCollision = false;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_SPECTATE_COLLISION), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_COLLISION), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 
 	return bCollision;
