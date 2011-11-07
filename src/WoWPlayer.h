@@ -25,6 +25,7 @@ public:
 	float GetPosY();
 	float GetPosZ();
 	float GetPosO();
+	bool SetPosition(Vec3 pos);
 	bool SetPosition(Vec4 pos);
 	bool SetPosition(float X, float Y, float Z, float O = 0.0f);
 	bool SetPosX(float newX);

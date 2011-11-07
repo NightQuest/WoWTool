@@ -98,30 +98,26 @@ bool WoWPlayer::RemoveFlags(DWORD flags)
 // Returns whether or not the player is in commentator mode
 bool WoWPlayer::IsInCommentatorMode()
 {
-	return HasFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS);
+	return HasFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
 }
 
 // Toggles commentator mode
 // Returns true on success
 bool WoWPlayer::SetCommentatorMode(bool bEnable)
 {
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
-		return false;
-
 	// Retrieve the player flags
 	DWORD PlrFlags = GetFlags();
 	SIZE_T size = 0;
 
 	if( bEnable )
 	{
-		// Read the player's position
+		// Read the players position
 		Vec4 pos = GetPosition();
 
 		// Increase the Z axis so the camera doesn't appear at ground level
 		pos.Z += 10.0f;
 
-		// Copy the player's position to the commentator camera's position, with a slight offset to Z
+		// Copy the players position to the commentator camera's position, with a slight offset to Z
 		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_X), &pos.X, sizeof(float), &size) || size != sizeof(float) )
 			return false;
 		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Y), &pos.Y, sizeof(float), &size) || size != sizeof(float) )
@@ -129,18 +125,12 @@ bool WoWPlayer::SetCommentatorMode(bool bEnable)
 		if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Z), &pos.Z, sizeof(float), &size) || size != sizeof(float) )
 			return false;
 
-		// Write the player flags back to memory, to either enable or disable commentator mode
-		if( !SetFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS) )
-			return false;
-	}
-	else
-	{
-		// Write the player flags back to memory, to either enable or disable commentator mode
-		if( !RemoveFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_COMMENTATOR_CAN_USE_COMMANDS) )
-			return false;
+		// Write the player flags back to memory, to enable commentator mode
+		return SetFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
 	}
 
-	return true;
+	// Write the player flags back to memory, to disable commentator mode
+	return RemoveFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
 }
 
 // Sets whether or not the commentator camera will collide with terrian
@@ -165,7 +155,7 @@ bool WoWPlayer::IsCommentatorCameraCollidable()
 	return bCollision;
 }
 
-// Returns a XYZO vector of the player's coordinates
+// Returns a XYZO vector of the players coordinates
 Vec4 WoWPlayer::GetPosition()
 {
 	Vec4 pos = { NULL };
@@ -179,7 +169,7 @@ Vec4 WoWPlayer::GetPosition()
 	return pos;
 }
 
-// Returns the player'S X coordinate
+// Returns the players X coordinate
 float WoWPlayer::GetPosX()
 {
 	PBYTE Plr = GetPlayerBase();
@@ -189,13 +179,13 @@ float WoWPlayer::GetPosX()
 	float pX = 0.0f;
 	SIZE_T size = 0;
 
-	// Read the current position of the player's X coordinate
+	// Read the current position of the players X coordinate
 	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &pX, sizeof(float), &size);
 
 	return pX;
 }
 
-// Returns the player's Y coordinate
+// Returns the players Y coordinate
 float WoWPlayer::GetPosY()
 {
 	PBYTE Plr = GetPlayerBase();
@@ -205,13 +195,13 @@ float WoWPlayer::GetPosY()
 	float pY = 0.0f;
 	SIZE_T size = 0;
 
-	// Read the current position of the player's Y coordinate
+	// Read the current position of the players Y coordinate
 	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_Y_OFFSET), &pY, sizeof(float), &size);
 
 	return pY;
 }
 
-// Returns the player's Z coordinate
+// Returns the players Z coordinate
 float WoWPlayer::GetPosZ()
 {
 	PBYTE Plr = GetPlayerBase();
@@ -221,13 +211,13 @@ float WoWPlayer::GetPosZ()
 	float pZ = 0.0f;
 	SIZE_T size = 0;
 
-	// Read the current position of the player's Z coordinate
+	// Read the current position of the players Z coordinate
 	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_Z_OFFSET), &pZ, sizeof(float), &size);
 
 	return pZ;
 }
 
-// Returns the player's orientation (Tau)
+// Returns the players orientation (Tau)
 float WoWPlayer::GetPosO()
 {
 	PBYTE Plr = GetPlayerBase();
@@ -237,7 +227,7 @@ float WoWPlayer::GetPosO()
 	float pO = 0.0f;
 	SIZE_T size = 0;
 
-	// Read the current position of the player's orientation
+	// Read the current position of the players orientation
 	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_O_OFFSET), &pO, sizeof(float), &size);
 
 	return pO;
@@ -254,6 +244,22 @@ bool WoWPlayer::SetPosition(Vec4 pos)
 
 	// Set the current position of the player
 	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &pos, sizeof(Vec4), &size) || size != sizeof(Vec4) )
+		return false;
+
+	return true;
+}
+
+// Sets the XYZ coordinates of the player using a vector
+// Returns true on success
+bool WoWPlayer::SetPosition(Vec3 pos)
+{
+	SIZE_T size = 0;
+	PBYTE Plr = GetPlayerBase();
+	if( Plr == NULL )
+		return false;
+
+	// Set the current position of the player
+	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &pos, sizeof(Vec3), &size) || size != sizeof(Vec4) )
 		return false;
 
 	return true;
@@ -276,7 +282,7 @@ bool WoWPlayer::SetPosX(float newX)
 	if( Plr == NULL )
 		return false;
 
-	// Set the current position of the player's X coordinate
+	// Set the current position of the players X coordinate
 	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET), &newX, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
@@ -292,7 +298,7 @@ bool WoWPlayer::SetPosY(float newY)
 	if( Plr == NULL )
 		return false;
 
-	// Set the current position of the player's Y coordinate
+	// Set the current position of the players Y coordinate
 	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_Y_OFFSET), &newY, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
@@ -308,7 +314,7 @@ bool WoWPlayer::SetPosZ(float newZ)
 	if( Plr == NULL )
 		return false;
 
-	// Set the current position of the player's Z coordinate
+	// Set the current position of the players Z coordinate
 	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_Z_OFFSET), &newZ, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
@@ -324,7 +330,7 @@ bool WoWPlayer::SetPosO(float newO)
 	if( Plr == NULL )
 		return false;
 
-	// Set the current position of the player's orientation
+	// Set the current position of the players orientation
 	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_O_OFFSET), &newO, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
