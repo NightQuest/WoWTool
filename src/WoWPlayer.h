@@ -2,7 +2,7 @@
 
 class WoWPlayer
 {
-private:
+protected:
 	HANDLE hProcess;
 	PBYTE baseAddress;
 	PBYTE GetPlayerBase();
@@ -18,6 +18,8 @@ public:
 	DWORD GetFlags();
 	bool SetCommentatorMode(bool bEnable);
 	bool IsInCommentatorMode();
+	bool SetCommentatorCameraSpeed(float speed);
+	float GetCommentatorCameraSpeed();
 	bool SetCommentatorCameraCollision(bool bEnable);
 	bool IsCommentatorCameraCollidable();
 	Vec4 GetPosition();

@@ -7,6 +7,8 @@
 #include <tlhelp32.h>
 #include <tchar.h>
 #include <iostream>
+#define _USE_MATH_DEFINES
+#include <math.h>
 
 #include "resource.h"
 #include "Defines.h"

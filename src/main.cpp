@@ -1,6 +1,15 @@
 #include "main.h"
 
-HWND hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox;
+enum WindowIDs
+{
+	HMENU_MAIN_WINDOW_SYSMENU = 20,
+	HMENU_MAIN_WINDOW = 110,
+	HMENU_COMMENTATOR_CHECKBOX,
+	HMENU_COMMENTATOR_COLLISION_CHECKBOX,
+	HMENU_TELEPORT_FORWARD_BUTTON,
+};
+
+HWND hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton;
 WoWManager *wm;
 
 BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
@@ -46,7 +55,7 @@ BOOL InitApplication(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	int width = 250;
-	int height = 100;
+	int height = 120;
 	hwndMain = CreateWindowEx(
 		NULL,
 		_T("WoWToolApp"),
@@ -93,6 +102,30 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 		HandleMainWindowCommand(hwnd, msg, wParam, lParam);
 		break;
 
+	case WM_SYSCOMMAND:
+		{
+			if( wParam == HMENU_MAIN_WINDOW_SYSMENU )
+			{
+				LONG dwStyle = GetWindowLong(hwndMain, GWL_EXSTYLE);
+				if( dwStyle & WS_EX_TOPMOST )
+				{
+					HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
+					CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU, MF_BYCOMMAND|MF_UNCHECKED);
+					SetWindowPos(hwndMain, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+				}
+				else
+				{
+					HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
+					CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU, MF_BYCOMMAND|MF_CHECKED);
+					SetWindowPos(hwndMain, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+				}
+				return FALSE;
+			}
+			else
+				DefWindowProc(hwnd, msg, wParam, lParam);
+		}
+		break;
+
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		break;
@@ -120,15 +153,22 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	hwndCommentatorCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Commentator Mode"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		10, 5, 120, 23, hwnd, (HMENU)111, NULL, NULL);
+		10, 5, 120, 23, hwnd, (HMENU)HMENU_COMMENTATOR_CHECKBOX, NULL, NULL);
 
 	hwndCommentatorCollisionCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Collision"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		10, 30, 70, 23, hwnd, (HMENU)112, NULL, NULL);
+		10, 30, 70, 23, hwnd, (HMENU)HMENU_COMMENTATOR_COLLISION_CHECKBOX, NULL, NULL);
+	hwndTeleportForwardButton = CreateWindowEx(NULL,
+		_T("Button"), _T("Teleport Forward"), WS_CHILD | WS_VISIBLE,
+		10, 55, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
 
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
 	SendMessage(hwndCommentatorCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndTeleportForwardButton, WM_SETFONT, (WPARAM)hfFont, TRUE);
+
+	HMENU hMenu = GetSystemMenu(hwnd, FALSE);
+	AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU, _T("Always on top"));
 
 	return FALSE;
 }
@@ -185,7 +225,7 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 {
 	switch(LOWORD(wParam))
 	{
-	case 111:
+	case HMENU_COMMENTATOR_CHECKBOX:
 		{
 			if( !wm )
 			{
@@ -199,7 +239,7 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		}
 		break;
 
-	case 112:
+	case HMENU_COMMENTATOR_COLLISION_CHECKBOX:
 		{
 			if( !wm )
 			{
@@ -210,6 +250,26 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			// Toggle commentator mode's camera collision
 			if( !wm->GetPlayer()->SetCommentatorCameraCollision(SendMessage(hwndCommentatorCollisionCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
 				MessageBox(NULL, _T("Cannot Toggle Commentator Mode's Collision!"), _T("Error!"), MB_ICONERROR|MB_OK);
+		}
+		break;
+
+	case HMENU_TELEPORT_FORWARD_BUTTON:
+		{
+			if( !wm )
+			{
+				MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
+
+			// Teleport forward by 10 units.
+			Vec4 pos = wm->GetPlayer()->GetPosition();
+			pos.X += 10.0f * cos(pos.O);
+			pos.Y += 10.0f * sin(pos.O);
+			if( !wm->GetPlayer()->SetPosition(pos) )
+			{
+				MessageBox(NULL, _T("Failed to set position!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
 		}
 		break;
 	}

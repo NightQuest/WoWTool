@@ -25,11 +25,11 @@ PBYTE WoWPlayer::GetPlayerFlagsBase()
 
 	// Read the Player Flags pointer
 	// The pointer to the player flags is located 0x1190 bytes from the player base
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FLAGS_OFFSET_ONE), &FlagsPtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FIELDS_OFFSET), &FlagsPtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
 		return NULL;
 
 	// Return 8 bytes past the base to be able to retrieve the player flags bitmask
-	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAGS_OFFSET_TWO) : NULL);
+	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAGS) : NULL);
 }
 
 // Returns the player flags bitmask, or NULL on failure
@@ -131,6 +131,26 @@ bool WoWPlayer::SetCommentatorMode(bool bEnable)
 
 	// Write the player flags back to memory, to disable commentator mode
 	return RemoveFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
+}
+
+// Sets the commentator camera speed multiplier
+// Returns true on success
+bool WoWPlayer::SetCommentatorCameraSpeed(float speed)
+{
+	SIZE_T size = 0;
+	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_SPEED), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+	return true;
+}
+
+// Returns the speed of the camera in commentator mode
+float WoWPlayer::GetCommentatorCameraSpeed()
+{
+	SIZE_T size;
+	float speed = 0.0f;
+
+	ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_SPEED), &speed, sizeof(float), &size);
+	return speed;
 }
 
 // Sets whether or not the commentator camera will collide with terrian
