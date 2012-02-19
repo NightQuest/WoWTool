@@ -7,9 +7,12 @@ enum WindowIDs
 	HMENU_COMMENTATOR_CHECKBOX,
 	HMENU_COMMENTATOR_COLLISION_CHECKBOX,
 	HMENU_TELEPORT_FORWARD_BUTTON,
+	HMENU_CAMERA_FOV_STATIC,
+	HMENU_CAMERA_FOV_SLIDER,
 };
 
-HWND hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton;
+HWND	hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton,
+		hwndCameraFOVStatic, hwndCameraFOVSlider;
 WoWManager *wm;
 
 BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
@@ -55,7 +58,7 @@ BOOL InitApplication(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	int width = 250;
-	int height = 120;
+	int height = 200;
 	hwndMain = CreateWindowEx(
 		NULL,
 		_T("WoWToolApp"),
@@ -100,6 +103,10 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 	case WM_COMMAND:
 		HandleMainWindowCommand(hwnd, msg, wParam, lParam);
+		break;
+
+	case WM_HSCROLL:
+		HandleMainWindowHScroll(hwnd, msg, wParam, lParam);
 		break;
 
 	case WM_SYSCOMMAND:
@@ -158,14 +165,30 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	hwndCommentatorCollisionCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Collision"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
 		10, 30, 70, 23, hwnd, (HMENU)HMENU_COMMENTATOR_COLLISION_CHECKBOX, NULL, NULL);
+
 	hwndTeleportForwardButton = CreateWindowEx(NULL,
 		_T("Button"), _T("Teleport Forward"), WS_CHILD | WS_VISIBLE,
-		10, 55, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
+		140, 5, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
+
+	hwndCameraFOVStatic = CreateWindowEx(NULL,
+		_T("Static"), _T("Field of View"), WS_CHILD | WS_VISIBLE,
+		10, 55, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
+
+	hwndCameraFOVSlider = CreateWindowEx(NULL,
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE,
+		5, 70, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
+
 
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
 	SendMessage(hwndCommentatorCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndTeleportForwardButton, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
+
+	SendMessage(hwndCameraFOVSlider, TBM_SETRANGE, TRUE, MAKELONG(0, 180));
+    SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 1);
+    SendMessage(hwndCameraFOVSlider, TBM_SETSEL, FALSE, MAKELONG(0, 180));
+    SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, 0);
 
 	HMENU hMenu = GetSystemMenu(hwnd, FALSE);
 	AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU, _T("Always on top"));
@@ -217,6 +240,8 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	// Read the game's memory, and fill in the values for it
 	SendMessage(hwndCommentatorCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsInCommentatorMode() ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	int pos = (int)wm->GetCamera()->GetFieldOfView();
+	SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, (LPARAM)pos);
 
 	return FALSE;
 }
@@ -269,6 +294,34 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			{
 				MessageBox(NULL, _T("Failed to set position!"), _T("Error!"), MB_ICONERROR|MB_OK);
 				break;
+			}
+		}
+		break;
+	}
+	return FALSE;
+}
+
+LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(LOWORD(wParam))
+	{
+	case SB_LINELEFT:
+	case SB_LINERIGHT:
+	case SB_PAGERIGHT:
+	case SB_PAGELEFT:
+	case SB_THUMBTRACK:
+	case SB_THUMBPOSITION:
+		{
+			if( (HWND)lParam == hwndCameraFOVSlider )
+			{
+				if( !wm )
+				{
+					MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+
+				float pos = (float)SendMessage(hwndCameraFOVSlider, TBM_GETPOS, 0, 0);
+				wm->GetCamera()->SetFieldOfView(pos);
 			}
 		}
 		break;

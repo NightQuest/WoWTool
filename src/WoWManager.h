@@ -8,6 +8,7 @@ private:
 	PBYTE baseAddress;
 
 	WoWPlayer *plr;
+	WoWCamera *cam;
 
 	// Basic helper functions
 
@@ -29,4 +30,5 @@ public:
 
 	// Returns an instance to the WoWPlayer class that contains Player specific functions
 	WoWPlayer *GetPlayer() { return plr; }
+	WoWCamera *GetCamera() { return cam; }
 };

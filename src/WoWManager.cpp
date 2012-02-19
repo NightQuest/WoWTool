@@ -118,6 +118,7 @@ bool WoWManager::Attach(DWORD dwInPID)
 	dwPID = dwInPID;
 	baseAddress = reinterpret_cast<PBYTE>(ntHeaders.OptionalHeader.ImageBase + ntHeaders.OptionalHeader.BaseOfCode);
 	plr = new WoWPlayer(hProcess, baseAddress);
+	cam = new WoWCamera(hProcess, baseAddress);
 	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
