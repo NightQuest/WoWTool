@@ -32,6 +32,8 @@ float WoWCamera::GetFieldOfView()
 	return (fov * (180.0f/(float)M_PI));
 }
 
+// Sets the new field of view (passed float is degrees)
+// Return true on success
 bool WoWCamera::SetFieldOfView(float newFov)
 {
 	PBYTE Cam = GetCameraBase();

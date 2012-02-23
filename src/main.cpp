@@ -6,13 +6,15 @@ enum WindowIDs
 	HMENU_MAIN_WINDOW = 110,
 	HMENU_COMMENTATOR_CHECKBOX,
 	HMENU_COMMENTATOR_COLLISION_CHECKBOX,
+	HMENU_COMMENTATOR_SPEED_STATIC,
+	HMENU_COMMENTATOR_SPEED_SLIDER,
 	HMENU_TELEPORT_FORWARD_BUTTON,
 	HMENU_CAMERA_FOV_STATIC,
 	HMENU_CAMERA_FOV_SLIDER,
 };
 
 HWND	hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton,
-		hwndCameraFOVStatic, hwndCameraFOVSlider;
+		hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic, hwndCommentatorSpeedSlider;
 WoWManager *wm;
 
 BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
@@ -170,24 +172,36 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		_T("Button"), _T("Teleport Forward"), WS_CHILD | WS_VISIBLE,
 		140, 5, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
 
+	hwndCommentatorSpeedStatic = CreateWindowEx(NULL,
+		_T("Static"), _T("Speed"), WS_CHILD | WS_VISIBLE,
+		10, 55, 100, 15, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_STATIC, NULL, NULL);
+
+	hwndCommentatorSpeedSlider = CreateWindowEx(NULL,
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
+		3, 70, 100, 23, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_SLIDER, NULL, NULL);
+
 	hwndCameraFOVStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Field of View"), WS_CHILD | WS_VISIBLE,
-		10, 55, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
+		140, 55, 100, 15, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
 
 	hwndCameraFOVSlider = CreateWindowEx(NULL,
-		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE,
-		5, 70, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
+		135, 70, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
 
 
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
 	SendMessage(hwndCommentatorCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndTeleportForwardButton, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndCommentatorSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
+
+	SendMessage(hwndCommentatorSpeedSlider, TBM_SETRANGE, TRUE, MAKELONG(1, 1000));
+    SendMessage(hwndCommentatorSpeedSlider, TBM_SETPAGESIZE, 0, 1);
+    SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, 1);
 
 	SendMessage(hwndCameraFOVSlider, TBM_SETRANGE, TRUE, MAKELONG(0, 180));
     SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 1);
-    SendMessage(hwndCameraFOVSlider, TBM_SETSEL, FALSE, MAKELONG(0, 180));
     SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, 0);
 
 	HMENU hMenu = GetSystemMenu(hwnd, FALSE);
@@ -232,6 +246,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	if( !dwPID || !wm->Attach(dwPID) )
 	{
 		delete wm;
+		wm = NULL;
 		MessageBox(NULL, _T("Cannot attach to WoW!\r\nPlease make sure that WoW is running and fully logged in, and you're running this tool as Administrator!"), _T("Error!"), MB_ICONERROR | MB_OK);
 		PostMessage(hwnd, WM_CLOSE, 0, 0);
 		return FALSE;
@@ -240,8 +255,19 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	// Read the game's memory, and fill in the values for it
 	SendMessage(hwndCommentatorCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsInCommentatorMode() ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
-	int pos = (int)wm->GetCamera()->GetFieldOfView();
+	int pos = (int)wm->GetPlayer()->GetCommentatorCameraSpeed();
+	SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)pos);
+	TCHAR *tmp = new TCHAR[30];
+	ZeroMemory(tmp, 30);
+	_stprintf(tmp, _T("Speed: %u"), pos);
+	SendMessage(hwndCommentatorSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+
+	pos = (int)wm->GetCamera()->GetFieldOfView();
 	SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, (LPARAM)pos);
+	ZeroMemory(tmp, 30);
+	_stprintf(tmp, _T("Field of view: %uº"), pos);
+	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+	delete[] tmp;
 
 	return FALSE;
 }
@@ -320,8 +346,29 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					break;
 				}
 
-				float pos = (float)SendMessage(hwndCameraFOVSlider, TBM_GETPOS, 0, 0);
-				wm->GetCamera()->SetFieldOfView(pos);
+				int pos = SendMessage(hwndCameraFOVSlider, TBM_GETPOS, 0, 0);
+				wm->GetCamera()->SetFieldOfView((float)pos);
+				TCHAR *tmp = new TCHAR[30];
+				ZeroMemory(tmp, 30);
+				_stprintf(tmp, _T("Field of view: %uº"), pos);
+				SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+				delete[] tmp;
+			}
+			else if( (HWND)lParam == hwndCommentatorSpeedSlider )
+			{
+				if( !wm )
+				{
+					MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+
+				int pos = SendMessage(hwndCommentatorSpeedSlider, TBM_GETPOS, 0, 0);
+				wm->GetPlayer()->SetCommentatorCameraSpeed((float)pos);
+				TCHAR *tmp = new TCHAR[30];
+				ZeroMemory(tmp, 30);
+				_stprintf(tmp, _T("Speed: %u"), pos);
+				SendMessage(hwndCommentatorSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+				delete[] tmp;
 			}
 		}
 		break;

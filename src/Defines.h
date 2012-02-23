@@ -89,3 +89,9 @@ enum PlayerFlags
 	PLAYER_FLAGS_UNK16								= 0x40000000, // 30 
 	PLAYER_FLAGS_UNK17								= 0x80000000, // 31 
 };
+
+// Player State
+enum PlayerState
+{
+	PLAYER_STATE_MOUNTED							= 0x08000000, // 27
+};
