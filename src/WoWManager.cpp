@@ -100,6 +100,23 @@ bool WoWManager::Attach(DWORD dwInPID)
 	} while( Module32Next(hModuleSnap, &me32) );
 	CloseHandle(hModuleSnap);
 
+	DWORD dwDummy, dwLen;
+	dwLen = GetFileVersionInfoSize(me32.szExePath, &dwDummy);
+	if( dwLen )
+	{
+		BYTE *versionInfo = new BYTE[dwLen];
+		if( versionInfo )
+		{
+			if( GetFileVersionInfo(me32.szExePath, NULL, dwLen, versionInfo) )
+			{
+				UINT uLen;
+				VS_FIXEDFILEINFO *ffi;
+				if( VerQueryValue(versionInfo, _T("\\"), (LPVOID *)&ffi, &uLen) != 0 )
+					gameVersion = LOWORD(ffi->dwFileVersionLS);
+			}
+			delete[] versionInfo;
+		}
+	}
 	baseAddr = me32.modBaseAddr;
 
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwInPID);
@@ -125,7 +142,6 @@ bool WoWManager::Attach(DWORD dwInPID)
 		baseAddress = reinterpret_cast<PBYTE>(ntHeaders.OptionalHeader.ImageBase + ntHeaders.OptionalHeader.BaseOfCode);
 
 		Initialize();
-
 		return true;
 	}
 	return false;
