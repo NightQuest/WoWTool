@@ -51,11 +51,10 @@ END
 //
 // Version
 //
-#include "..\VersionNo.h"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION VERSION
- PRODUCTVERSION VERSION
+ FILEVERSION 0, 0, 0, 0
+ PRODUCTVERSION 0, 0, 0, 0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x3L
@@ -71,12 +70,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "WoWTool"
-            VALUE "FileVersion", STRVERSION
+            VALUE "FileVersion", "0, 0, 0, 0"
             VALUE "InternalName", "WoWTool"
             VALUE "LegalCopyright", "Copyright (C) 2011"
             VALUE "OriginalFilename", "WoWTool.exe"
             VALUE "ProductName", "WoWTool"
-            VALUE "ProductVersion", STRVERSION
+            VALUE "ProductVersion", "0, 0, 0, 0"
         END
     END
     BLOCK "VarFileInfo"

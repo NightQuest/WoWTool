@@ -1,0 +1,9 @@
+
+/src/res/*.aps
+/win/*.ncb
+/win/*.suo
+/win/*.user
+/bin/Debug
+/bin/Release
+/win/Debug
+/win/Release

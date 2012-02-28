@@ -2,12 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by WoWTool.rc
 //
-#define MAJOR_VERSION                   0
-#define MINOR_VERSION                   0
-#define HOTFIX_VERSION                  0
 #define IDI_MAIN_ICON                   101
-#define BUILD_NO                        149
-
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
