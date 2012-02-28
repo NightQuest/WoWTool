@@ -11,6 +11,7 @@ private:
 	WoWCamera *cam;
 
 	// Basic helper functions
+	void Initialize();
 
 	// WoW helper functions
 

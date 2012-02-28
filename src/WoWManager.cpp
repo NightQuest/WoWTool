@@ -107,19 +107,32 @@ bool WoWManager::Attach(DWORD dwInPID)
 	if( !ReadProcessMemory(hProcess, baseAddr, &dosHeader, sizeof(IMAGE_DOS_HEADER), &size) || size != sizeof(IMAGE_DOS_HEADER) || dosHeader.e_magic != IMAGE_DOS_SIGNATURE )
 	{
 		CloseHandle(hProcess);
+		hProcess = INVALID_HANDLE_VALUE;
 		return false;
 	}
 	if( !ReadProcessMemory(hProcess, ((PBYTE)baseAddr + dosHeader.e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS32), &size) || size != sizeof(IMAGE_NT_HEADERS32) )
 	{
 		CloseHandle(hProcess);
+		hProcess = INVALID_HANDLE_VALUE;
 		return false;
 	}
 
-	dwPID = dwInPID;
-	baseAddress = reinterpret_cast<PBYTE>(ntHeaders.OptionalHeader.ImageBase + ntHeaders.OptionalHeader.BaseOfCode);
+	if( hProcess != NULL && hProcess != INVALID_HANDLE_VALUE )
+	{
+		dwPID = dwInPID;
+		baseAddress = reinterpret_cast<PBYTE>(ntHeaders.OptionalHeader.ImageBase + ntHeaders.OptionalHeader.BaseOfCode);
+
+		Initialize();
+
+		return true;
+	}
+	return false;
+}
+
+void WoWManager::Initialize()
+{
 	plr = new WoWPlayer(hProcess, baseAddress);
 	cam = new WoWCamera(hProcess, baseAddress);
-	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
 // Launches an instance of WoW with the supplied commandline arguments, and then attaches the class to it.
