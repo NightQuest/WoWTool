@@ -1,7 +1,7 @@
 #include "main.h"
 
 // Constructor for WoWManager will give the program SeDebug privileges
-WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress(NULL)
+WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress(NULL), gameVersion(NULL), plr(NULL), cam(NULL)
 {
 	HANDLE hToken = INVALID_HANDLE_VALUE;
 
@@ -38,6 +38,8 @@ WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress
 // Destructor for WoWManager, will remove SeDebug from the programs privilege level and Detach the program from WoW
 WoWManager::~WoWManager()
 {
+	Deinitialize();
+
 	HANDLE hToken = INVALID_HANDLE_VALUE;
 	if( OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) )
 	{
@@ -135,6 +137,20 @@ void WoWManager::Initialize()
 	cam = new WoWCamera(hProcess, baseAddress);
 }
 
+void WoWManager::Deinitialize()
+{
+	if( plr )
+	{
+		delete plr;
+		plr = NULL;
+	}
+	if( cam )
+	{
+		delete cam;
+		cam = NULL;
+	}
+}
+
 // Launches an instance of WoW with the supplied commandline arguments, and then attaches the class to it.
 bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 {
@@ -216,7 +232,7 @@ bool WoWManager::SetAnimationSpeed(double speed)
 		return false;
 
 	SIZE_T size;
-	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION), &speed, sizeof(double), &size) && size == sizeof(double));
+	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_8606), &speed, sizeof(double), &size) && size == sizeof(double));
 }
 
 // Sets the game speed of the game (speed of everything from time, animations, etc)
@@ -227,5 +243,5 @@ bool WoWManager::SetGameSpeed(double speed)
 		return false;
 
 	SIZE_T size;
-	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_GAME_SPEED), &speed, sizeof(double), &size) && size == sizeof(double));
+	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_GAME_SPEED_8606), &speed, sizeof(double), &size) && size == sizeof(double));
 }

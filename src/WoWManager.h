@@ -6,12 +6,14 @@ private:
 	HANDLE hProcess;
 	DWORD dwPID;
 	PBYTE baseAddress;
+	UINT gameVersion;
 
 	WoWPlayer *plr;
 	WoWCamera *cam;
 
 	// Basic helper functions
 	void Initialize();
+	void Deinitialize();
 
 	// WoW helper functions
 

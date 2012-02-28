@@ -7,9 +7,9 @@ PBYTE WoWCamera::GetCameraBase()
 	SIZE_T size = 0;
 
 	// Retrieve the base address of the camera class from the game's memory.
-	if( !ReadProcessMemory(hProcess, (baseAddress + CAMERA_BASE_PTR), &cam, sizeof(PBYTE), &size) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + CAMERA_BASE_PTR_8606), &cam, sizeof(PBYTE), &size) )
 		return NULL;
-	if( !ReadProcessMemory(hProcess, (cam + CAMERA_CLASS_OFFSET), &cam, sizeof(PBYTE), &size) )
+	if( !ReadProcessMemory(hProcess, (cam + CAMERA_CLASS_OFFSET_8606), &cam, sizeof(PBYTE), &size) )
 		return NULL;
 
 	return cam;
@@ -26,7 +26,7 @@ float WoWCamera::GetFieldOfView()
 		return 0.0f;
 
 	// Read 0x40 bytes past the camera base to retrieve the field of view.
-	ReadProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET), &fov, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET_8606), &fov, sizeof(float), &size);
 
 	// return the result in degrees, not radians.
 	return (fov * (180.0f/(float)M_PI));
@@ -50,7 +50,7 @@ bool WoWCamera::SetFieldOfView(float newFov)
 	newFov = newFov * ((float)M_PI/180.0f);
 
 	// Set the new field of view
-	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET), &newFov, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET_8606), &newFov, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;

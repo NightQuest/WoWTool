@@ -2,12 +2,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NON_CONFORMING_SWPRINTFS
 #define WIN32_MEAN_AND_LEAN
+#define _USE_MATH_DEFINES
 #include <windows.h>
 #include <commctrl.h>
 #include <tlhelp32.h>
 #include <tchar.h>
 #include <iostream>
-#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include "resource.h"
