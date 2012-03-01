@@ -13,21 +13,26 @@ enum WindowIDs
 	HMENU_CAMERA_FOV_SLIDER,
 };
 
+// Global variables
 HWND	hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton,
 		hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic, hwndCommentatorSpeedSlider;
 WoWManager *wm;
 
+// Main program function - called when the program starts
 BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow)
 {
 	MSG Msg;
+	BOOL bRet;
 
+	// Register the window class
 	if( !InitApplication(hInstance) )
 		return FALSE;
 
+	// Create the main window
 	if (!InitInstance(hInstance, nCmdShow))
 		return FALSE;
 
-	BOOL bRet;
+	// The main message loop
 	while( (bRet = GetMessage(&Msg, NULL, 0, 0)) != 0 && bRet != -1 )
 	{
 		TranslateMessage( &Msg );
@@ -37,6 +42,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdSho
 	return Msg.wParam;
 }
 
+// Initialize the window classes
 BOOL InitApplication(HINSTANCE hInstance)
 {
 	WNDCLASSEX	wcx;
@@ -57,10 +63,13 @@ BOOL InitApplication(HINSTANCE hInstance)
 	return RegisterClassEx(&wcx);
 }
 
+// Initialize an instance of the program (windows and such)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	int width = 250;
 	int height = 200;
+
+	// Create the main window
 	hwndMain = CreateWindowEx(
 		NULL,
 		_T("WoWToolApp"),
@@ -86,44 +95,58 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return 0;
 	}
 
+	// Show the window
 	ShowWindow( hwndMain, nCmdShow );
 	UpdateWindow( hwndMain );
 	return TRUE;
 }
 
+// Proc for the main window (called whenever a message happens, pretty much)
 LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(msg)
 	{
+	// Called when the main windows gets created
 	case WM_CREATE:
 		HandleMainWindowCreate(hwnd, msg, wParam, lParam);
 		break;
 
+	// Called when the main window is shown via ShowWindow()
 	case WM_SHOWWINDOW:
 		HandleMainWindowShowWindow(hwnd, msg, wParam, lParam);
 		break;
 
+	// Called when the main window recieves a user command (Eg: Right-click)
 	case WM_COMMAND:
 		HandleMainWindowCommand(hwnd, msg, wParam, lParam);
 		break;
 
+	// Called when a horizontal scroll occurs in the main window
 	case WM_HSCROLL:
 		HandleMainWindowHScroll(hwnd, msg, wParam, lParam);
 		break;
 
+	// Called when a SYSCOMMAND happens (Eg: Right clicking the title bar)
 	case WM_SYSCOMMAND:
 		{
+			// Main titlebar right click menu
 			if( wParam == HMENU_MAIN_WINDOW_SYSMENU )
 			{
 				LONG dwStyle = GetWindowLong(hwndMain, GWL_EXSTYLE);
 				if( dwStyle & WS_EX_TOPMOST )
 				{
+					// Grab the menu for the titlebar,
+					// Set our custom item to unchecked,
+					// And update the window via moving it nowhere
 					HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
 					CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU, MF_BYCOMMAND|MF_UNCHECKED);
 					SetWindowPos(hwndMain, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 				}
 				else
 				{
+					// Grab the menu for the titlebar,
+					// Set our custom item to checked,
+					// And update the window via moving it nowhere
 					HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
 					CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU, MF_BYCOMMAND|MF_CHECKED);
 					SetWindowPos(hwndMain, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
@@ -135,10 +158,12 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 		}
 		break;
 
+	// Called when the user clicks the 'X' on our main window usually
 	case WM_CLOSE:
 		DestroyWindow(hwnd);
 		break;
 
+	// Called when it's time to fully destroy our window, and exit the program
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
@@ -150,9 +175,13 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	return FALSE;
 }
 
+// Function to create our main window
 LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	// Initialize common controls so we can have modern looking buttons and such
 	InitCommonControls();
+
+	// Initialize the COM library so we can (if needed) open a file browsing dialog
 	HRESULT hr = OleInitialize(NULL);
 	if( hr != S_OK && hr != S_FALSE )
 	{
@@ -160,6 +189,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		PostMessage(hwnd, WM_CLOSE, 0, 0);
 	}
 
+	// Create all the main UI elements
 	hwndCommentatorCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Commentator Mode"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
 		10, 5, 120, 23, hwnd, (HMENU)HMENU_COMMENTATOR_CHECKBOX, NULL, NULL);
@@ -189,6 +219,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		135, 70, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
 
 
+	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
 	SendMessage(hwndCommentatorCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
@@ -196,28 +227,34 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndCommentatorSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
+	// Set the min/max of the Commentator speed slider to 1/1000
+	// TODO: allow fractions
 	SendMessage(hwndCommentatorSpeedSlider, TBM_SETRANGE, TRUE, MAKELONG(1, 1000));
     SendMessage(hwndCommentatorSpeedSlider, TBM_SETPAGESIZE, 0, 1);
     SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, 1);
 
+	// Set the min/max of the field of view slider to 0/180
+	// TODO: allow fractions
 	SendMessage(hwndCameraFOVSlider, TBM_SETRANGE, TRUE, MAKELONG(0, 180));
     SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 1);
     SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, 0);
 
+	// Add "Always on top" to the main windows titlebar right click menu
 	HMENU hMenu = GetSystemMenu(hwnd, FALSE);
 	AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU, _T("Always on top"));
 
 	return FALSE;
 }
 
+// Function called when the main window is shown via ShowWindow()
 LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	// Find Wow.exe in memory
 	HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
 	HANDLE hProcess = INVALID_HANDLE_VALUE;
 	PROCESSENTRY32 pe32;
 	DWORD dwPID = 0;
 
+	// Create a list of all the processes running on the system (or try until we do)
 	do
 	{
 		hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -232,6 +269,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	if( !Process32First(hProcessSnap, &pe32) )
 		return FALSE;
 
+	// Find "Wow.exe" and save the PID if found
 	do
 	{
 		if( !_tcscmp(pe32.szExeFile, _T("Wow.exe")) )
@@ -272,8 +310,10 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	return FALSE;
 }
 
+// Function called when the main windows recieves a command
 LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	// LOWORD(wParam) is the target UI element
 	switch(LOWORD(wParam))
 	{
 	case HMENU_COMMENTATOR_CHECKBOX:
@@ -327,14 +367,18 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 	return FALSE;
 }
 
+// Function called when the user does a horizontal scroll
 LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(LOWORD(wParam))
 	{
+	// Track when the user drags it with the mouse
 	case SB_LINELEFT:
 	case SB_LINERIGHT:
+	// Track when the user presses page up/down
 	case SB_PAGERIGHT:
 	case SB_PAGELEFT:
+	// Track when the user press left/right
 	case SB_THUMBTRACK:
 	case SB_THUMBPOSITION:
 		{
@@ -346,6 +390,7 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					break;
 				}
 
+				// Set the field of view to the position of the slider and update the text to match
 				int pos = SendMessage(hwndCameraFOVSlider, TBM_GETPOS, 0, 0);
 				wm->GetCamera()->SetFieldOfView((float)pos);
 				TCHAR *tmp = new TCHAR[30];
@@ -362,6 +407,7 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					break;
 				}
 
+				// Set the Commentator speed to the position of the slider and update the text to match
 				int pos = SendMessage(hwndCommentatorSpeedSlider, TBM_GETPOS, 0, 0);
 				wm->GetPlayer()->SetCommentatorCameraSpeed((float)pos);
 				TCHAR *tmp = new TCHAR[30];

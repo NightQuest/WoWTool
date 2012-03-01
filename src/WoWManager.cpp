@@ -4,7 +4,10 @@
 WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress(NULL), gameVersion(NULL), plr(NULL), cam(NULL)
 {
 	HANDLE hToken = INVALID_HANDLE_VALUE;
+	TOKEN_PRIVILEGES tp;
 
+	// Grab a token for the current process with adjustment process
+	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
 	if( !OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) )
 	{
 		delete this;
@@ -12,7 +15,8 @@ WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress
 		return;
 	}
 
-	TOKEN_PRIVILEGES tp;
+	// Lookup the priviledge for debug
+	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
 	if( !LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid) )
 	{
 		CloseHandle(hToken);
@@ -24,6 +28,8 @@ WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress
 	tp.PrivilegeCount = 1;
 	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
+	// Enable Debug priviledges
+	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
 	if( !AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL) )
 	{
 		CloseHandle(hToken);
@@ -38,8 +44,10 @@ WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress
 // Destructor for WoWManager, will remove SeDebug from the programs privilege level and Detach the program from WoW
 WoWManager::~WoWManager()
 {
+	// Call all external Deinitializations that need to take place (deleting the player and camera class, for instance)
 	Deinitialize();
 
+	// Remove Debug priviledges for the current process
 	HANDLE hToken = INVALID_HANDLE_VALUE;
 	if( OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) )
 	{
@@ -55,11 +63,13 @@ WoWManager::~WoWManager()
 		CloseHandle(hToken);
 	}
 
+	// If still attached to Wow.exe, close the handle associated with it
 	if( hProcess )
 		CloseHandle(hProcess);
 }
 
 // Attaches the class to an already-loaded instance of WoW.
+// Return true on success
 bool WoWManager::Attach(DWORD dwInPID)
 {
 	MODULEENTRY32 me32;
@@ -71,6 +81,7 @@ bool WoWManager::Attach(DWORD dwInPID)
 	TCHAR *ptr = NULL;
 	SIZE_T size = 0;
 
+	// Create a snapshot of all modules of the passed process ID (or try until we do)
 	do
 	{
 		hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE|TH32CS_SNAPMODULE32, dwInPID);
@@ -81,10 +92,12 @@ bool WoWManager::Attach(DWORD dwInPID)
 	if( hModuleSnap == INVALID_HANDLE_VALUE )
 		return false;
 
+	// Start to loop through the module list
 	me32.dwSize = sizeof(MODULEENTRY32);
 	if( !Module32First(hModuleSnap, &me32) )
 		return false;
 
+	// Loop through the module list until we find Wow.exe (or reach the end)
 	do
 	{
 		ptr = _tcsrchr(me32.szExePath, '\\');
@@ -100,6 +113,7 @@ bool WoWManager::Attach(DWORD dwInPID)
 	} while( Module32Next(hModuleSnap, &me32) );
 	CloseHandle(hModuleSnap);
 
+	// Retrieve the lower word of the version (Ex: 2.4.3.8606 would return 8606)
 	DWORD dwDummy, dwLen;
 	dwLen = GetFileVersionInfoSize(me32.szExePath, &dwDummy);
 	if( dwLen )
@@ -117,25 +131,32 @@ bool WoWManager::Attach(DWORD dwInPID)
 			delete[] versionInfo;
 		}
 	}
+
+	// Grab the base address of the module
 	baseAddr = me32.modBaseAddr;
 
+	// Attempt to open the passed Process ID
 	hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwInPID);
 	if( !hProcess )
 		return false;
 
+	// Read the DOS header so we can retrieve the address to the NT header
 	if( !ReadProcessMemory(hProcess, baseAddr, &dosHeader, sizeof(IMAGE_DOS_HEADER), &size) || size != sizeof(IMAGE_DOS_HEADER) || dosHeader.e_magic != IMAGE_DOS_SIGNATURE )
 	{
 		CloseHandle(hProcess);
 		hProcess = INVALID_HANDLE_VALUE;
 		return false;
 	}
-	if( !ReadProcessMemory(hProcess, ((PBYTE)baseAddr + dosHeader.e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS32), &size) || size != sizeof(IMAGE_NT_HEADERS32) )
+	// Read the NT header so we can get the base of code address, and image base address
+	if( !ReadProcessMemory(hProcess, ((PBYTE)baseAddr + dosHeader.e_lfanew), &ntHeaders, sizeof(IMAGE_NT_HEADERS32), &size) || size != sizeof(IMAGE_NT_HEADERS32) || ntHeaders.Signature != IMAGE_NT_SIGNATURE )
 	{
 		CloseHandle(hProcess);
 		hProcess = INVALID_HANDLE_VALUE;
 		return false;
 	}
 
+	// Since we're here, we've successfully read everything above.
+	// Set the baseAddress, PID, and call basic initializers (creating an instance of the Player class, for instance)
 	if( hProcess != NULL && hProcess != INVALID_HANDLE_VALUE )
 	{
 		dwPID = dwInPID;
@@ -147,12 +168,14 @@ bool WoWManager::Attach(DWORD dwInPID)
 	return false;
 }
 
+// Initialize basic classes and other variables inside of private
 void WoWManager::Initialize()
 {
 	plr = new WoWPlayer(hProcess, baseAddress);
 	cam = new WoWCamera(hProcess, baseAddress);
 }
 
+// delete initializations of classes and other variables inside of private
 void WoWManager::Deinitialize()
 {
 	if( plr )
@@ -168,6 +191,7 @@ void WoWManager::Deinitialize()
 }
 
 // Launches an instance of WoW with the supplied commandline arguments, and then attaches the class to it.
+// Returns true on success
 bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 {
 	if( path == NULL || *path == NULL )
@@ -180,6 +204,8 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	ZeroMemory(&si, sizeof(si)); si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
 	ZeroMemory(&sa, sizeof(sa));
+
+	// Make sure the passed file is there
 	hFile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if( hFile == INVALID_HANDLE_VALUE )
 		return false;
@@ -187,10 +213,12 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	{
 		CloseHandle(hFile);
 
+		// Attempt to launch the passed path and commandlines
 		if( !CreateProcess(path, ((commandline != NULL && *commandline != NULL) ? commandline : NULL), NULL, NULL, FALSE, NULL, NULL, NULL, &si, &pi) )
 			return false;
 		else
 		{
+			// On success, sore the handle to the process, as well as the PID - then wait for the program to idle (max 5sec)
 			hProcess = pi.hProcess;
 			dwPID = pi.dwProcessId;
 			WaitForInputIdle(pi.hProcess, 5000);
@@ -200,7 +228,7 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 	return (hProcess != INVALID_HANDLE_VALUE);
 }
 
-// Returns the location of the attached copy of WoW
+// Returns the location of the attached copy of WoW, NULL on failure
 TCHAR *WoWManager::GetProgramLocation()
 {
 	MODULEENTRY32 me32;
@@ -242,6 +270,7 @@ TCHAR *WoWManager::GetProgramLocation()
 
 // Sets the speed of animations
 // Default: 1000
+// Returns true on success
 bool WoWManager::SetAnimationSpeed(double speed)
 {
 	if( !hProcess || !dwPID )
@@ -253,6 +282,7 @@ bool WoWManager::SetAnimationSpeed(double speed)
 
 // Sets the game speed of the game (speed of everything from time, animations, etc)
 // Default: 0.00100000004749
+// Returns true on success
 bool WoWManager::SetGameSpeed(double speed)
 {
 	if( !hProcess || !dwPID )
