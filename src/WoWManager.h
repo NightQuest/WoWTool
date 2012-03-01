@@ -8,7 +8,7 @@ private:
 	PBYTE baseAddress;
 	UINT gameVersion;
 
-	WoWPlayer *plr;
+	Player *plr;
 	WoWCamera *cam;
 
 	// Basic helper functions
@@ -31,7 +31,7 @@ public:
 	bool SetAnimationSpeed(double speed);
 	bool SetGameSpeed(double speed);
 
-	// Returns an instance to the WoWPlayer class that contains Player specific functions
-	WoWPlayer *GetPlayer() { return plr; }
+	// Returns an instance to the Player class that contains Player specific functions
+	Player *GetPlayer() { return plr; }
 	WoWCamera *GetCamera() { return cam; }
 };

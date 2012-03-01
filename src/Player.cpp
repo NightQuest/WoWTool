@@ -1,7 +1,7 @@
 #include "PreCompiled.h"
 
 // Returns the Base address of the player block in memory - INTERNAL
-PBYTE WoWPlayer::GetPlayerBase()
+PBYTE Player::GetPlayerBase()
 {
 	PBYTE plr = NULL;
 	SIZE_T size = 0;
@@ -14,7 +14,7 @@ PBYTE WoWPlayer::GetPlayerBase()
 }
 
 // Returns the base address of the player flags in memory - INTERNAL
-PBYTE WoWPlayer::GetPlayerFlagsBase()
+PBYTE Player::GetPlayerFlagsBase()
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
@@ -32,8 +32,48 @@ PBYTE WoWPlayer::GetPlayerFlagsBase()
 	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAGS_8606) : NULL);
 }
 
+// Calculates the distance from the specified coordinates
+// Returns distance on success, 0.0f on failure
+float Player::DistanceFrom(float X, float Y, float Z)
+{
+	Vec4 position = GetPosition();
+	if( position.X == NULL )
+		return 0.0f;
+
+	return sqrt( pow(position.X - X, 2) + pow(position.Y - Y, 2) + pow(position.Z - Z, 2) );
+}
+
+// Turns the player to face a certain set of coordinates
+// Returns true on success
+bool Player::SetFacing(float X, float Y, float Z)
+{
+	Vec4 newPos;
+	Vec4 position = GetPosition();
+	if( position.X == NULL )
+		return false;
+
+	newPos.X = position.X - X;
+	newPos.Y = position.Y - Y;
+
+	if( newPos.X < 0.0f )
+		newPos.X *= -1.0f;
+	if( newPos.Y < 0.0f )
+		newPos.Y *= -1.0f;
+
+	if( X > position.X && Y > position.Y )
+		newPos.O = atan(newPos.Y/newPos.X) * 180.f / (float)M_PI;
+	else if( X > position.X && Y < position.Y )
+		newPos.O = (((atan(newPos.Y/newPos.X) * 180.0f / (float)M_PI) * -1.0f) + 90.0f) + 270.0f;
+	else if( X < position.X && Y < position.Y )
+		newPos.O = (atan(newPos.Y/newPos.X) * 180.0f / (float)M_PI) + 180.0f;
+	else if( X > position.X && Y > position.Y )
+		newPos.O = (((atan(newPos.Y/newPos.X) * 180.0f / (float)M_PI) * -1.0f) + 90.0f) + 90.0f;
+
+	return SetPosO( ((float)M_PI*2)*newPos.O );
+}
+
 // Returns the player flags bitmask, or NULL on failure
-DWORD WoWPlayer::GetFlags()
+DWORD Player::GetFlags()
 {
 	PBYTE FlagsPtr = GetPlayerFlagsBase();
 	DWORD PlrFlags = NULL;
@@ -51,11 +91,11 @@ DWORD WoWPlayer::GetFlags()
 
 // Checks to see if the passed bitmask exists in the player flags bitmask.
 // Returns true on success.
-bool WoWPlayer::HasFlags(DWORD flags) { return (GetFlags() & flags) > 0; }
+bool Player::HasFlags(DWORD flags) { return (GetFlags() & flags) > 0; }
 
 // Does a bitwise OR operation on the player flags, adding whatever is passed.
 // Returns true on success.
-bool WoWPlayer::SetFlags(DWORD flags)
+bool Player::SetFlags(DWORD flags)
 {
 	PBYTE FlagsPtr = GetPlayerFlagsBase();
 	DWORD PlrFlags = NULL;
@@ -76,7 +116,7 @@ bool WoWPlayer::SetFlags(DWORD flags)
 
 // Does a bitwise inverse OR on the player flags, removing whatever is passed.
 // Returns true on success.
-bool WoWPlayer::RemoveFlags(DWORD flags)
+bool Player::RemoveFlags(DWORD flags)
 {
 	PBYTE FlagsPtr = GetPlayerFlagsBase();
 	DWORD PlrFlags = NULL;
@@ -96,14 +136,14 @@ bool WoWPlayer::RemoveFlags(DWORD flags)
 }
 
 // Returns whether or not the player is in commentator mode
-bool WoWPlayer::IsInCommentatorMode()
+bool Player::IsInCommentatorMode()
 {
 	return HasFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
 }
 
 // Toggles commentator mode
 // Returns true on success
-bool WoWPlayer::SetCommentatorMode(bool bEnable)
+bool Player::SetCommentatorMode(bool bEnable)
 {
 	// Retrieve the player flags
 	DWORD PlrFlags = GetFlags();
@@ -135,7 +175,7 @@ bool WoWPlayer::SetCommentatorMode(bool bEnable)
 
 // Sets the commentator camera speed multiplier
 // Returns true on success
-bool WoWPlayer::SetCommentatorCameraSpeed(float speed)
+bool Player::SetCommentatorCameraSpeed(float speed)
 {
 	SIZE_T size = 0;
 	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
@@ -144,7 +184,7 @@ bool WoWPlayer::SetCommentatorCameraSpeed(float speed)
 }
 
 // Returns the speed of the camera in commentator mode
-float WoWPlayer::GetCommentatorCameraSpeed()
+float Player::GetCommentatorCameraSpeed()
 {
 	SIZE_T size;
 	float speed = 0.0f;
@@ -155,7 +195,7 @@ float WoWPlayer::GetCommentatorCameraSpeed()
 
 // Sets whether or not the commentator camera will collide with terrian
 // Returns true on success
-bool WoWPlayer::SetCommentatorCameraCollision(bool bEnable)
+bool Player::SetCommentatorCameraCollision(bool bEnable)
 {
 	SIZE_T size = 0;
 	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_COLLISION_8606), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
@@ -164,7 +204,7 @@ bool WoWPlayer::SetCommentatorCameraCollision(bool bEnable)
 }
 
 // Returns whether or not the commentator camera will collide with terrian
-bool WoWPlayer::IsCommentatorCameraCollidable()
+bool Player::IsCommentatorCameraCollidable()
 {
 	SIZE_T size;
 	bool bCollision = false;
@@ -176,7 +216,7 @@ bool WoWPlayer::IsCommentatorCameraCollidable()
 }
 
 // Returns a XYZO vector of the players coordinates
-Vec4 WoWPlayer::GetPosition()
+Vec4 Player::GetPosition()
 {
 	Vec4 pos = { NULL };
 	PBYTE Plr = GetPlayerBase();
@@ -190,7 +230,7 @@ Vec4 WoWPlayer::GetPosition()
 }
 
 // Returns the players X coordinate
-float WoWPlayer::GetPosX()
+float Player::GetPosX()
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
@@ -206,7 +246,7 @@ float WoWPlayer::GetPosX()
 }
 
 // Returns the players Y coordinate
-float WoWPlayer::GetPosY()
+float Player::GetPosY()
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
@@ -222,7 +262,7 @@ float WoWPlayer::GetPosY()
 }
 
 // Returns the players Z coordinate
-float WoWPlayer::GetPosZ()
+float Player::GetPosZ()
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
@@ -238,7 +278,7 @@ float WoWPlayer::GetPosZ()
 }
 
 // Returns the players orientation (Tau)
-float WoWPlayer::GetPosO()
+float Player::GetPosO()
 {
 	PBYTE Plr = GetPlayerBase();
 	if( Plr == NULL )
@@ -255,7 +295,7 @@ float WoWPlayer::GetPosO()
 
 // Sets the XYZO coordinates of the player using a vector
 // Returns true on success
-bool WoWPlayer::SetPosition(Vec4 pos)
+bool Player::SetPosition(Vec4 pos)
 {
 	SIZE_T size = 0;
 	PBYTE Plr = GetPlayerBase();
@@ -271,7 +311,7 @@ bool WoWPlayer::SetPosition(Vec4 pos)
 
 // Sets the XYZ coordinates of the player using a vector
 // Returns true on success
-bool WoWPlayer::SetPosition(Vec3 pos)
+bool Player::SetPosition(Vec3 pos)
 {
 	SIZE_T size = 0;
 	PBYTE Plr = GetPlayerBase();
@@ -287,7 +327,7 @@ bool WoWPlayer::SetPosition(Vec3 pos)
 
 // Sets the XYZO coordinates of the player
 // Returns true on success
-bool WoWPlayer::SetPosition(float X, float Y, float Z, float O)
+bool Player::SetPosition(float X, float Y, float Z, float O)
 {
 	Vec4 pos = { X, Y, Z, O };
 	return SetPosition(pos);
@@ -295,7 +335,7 @@ bool WoWPlayer::SetPosition(float X, float Y, float Z, float O)
 
 // Set the Player's X coordinate
 // Returns true on success
-bool WoWPlayer::SetPosX(float newX)
+bool Player::SetPosX(float newX)
 {
 	SIZE_T size = 0;
 	PBYTE Plr = GetPlayerBase();
@@ -311,7 +351,7 @@ bool WoWPlayer::SetPosX(float newX)
 
 // Set the Player's Y coordinate
 // Returns true on success
-bool WoWPlayer::SetPosY(float newY)
+bool Player::SetPosY(float newY)
 {
 	SIZE_T size = 0;
 	PBYTE Plr = GetPlayerBase();
@@ -327,7 +367,7 @@ bool WoWPlayer::SetPosY(float newY)
 
 // Set the Player's X coordinate
 // Returns true on success
-bool WoWPlayer::SetPosZ(float newZ)
+bool Player::SetPosZ(float newZ)
 {
 	SIZE_T size = 0;
 	PBYTE Plr = GetPlayerBase();
@@ -343,7 +383,7 @@ bool WoWPlayer::SetPosZ(float newZ)
 
 // Set the Player's orientation (Tau)
 // Returns true on success
-bool WoWPlayer::SetPosO(float newO)
+bool Player::SetPosO(float newO)
 {
 	SIZE_T size = 0;
 	PBYTE Plr = GetPlayerBase();

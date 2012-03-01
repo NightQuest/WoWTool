@@ -171,7 +171,7 @@ bool WoWManager::Attach(DWORD dwInPID)
 // Initialize basic classes and other variables inside of private
 void WoWManager::Initialize()
 {
-	plr = new WoWPlayer(hProcess, baseAddress);
+	plr = new Player(hProcess, baseAddress);
 	cam = new WoWCamera(hProcess, baseAddress);
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-class WoWPlayer
+class Player
 {
 protected:
 	HANDLE hProcess;
@@ -9,9 +9,16 @@ protected:
 	PBYTE GetPlayerFlagsBase();
 
 public:
-	WoWPlayer(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}
-	~WoWPlayer() {}
+	Player(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}
+	~Player() {}
 
+	// Utility functions
+	float DistanceFrom(float X, float Y, float Z);
+	float DistanceFrom(Vec3 position) { return DistanceFrom(position.X, position.Y, position.Z); }
+	bool SetFacing(float X, float Y, float Z);
+	bool SetFacing(Vec3 position) { return SetFacing(position.X, position.Y, position.Z); }
+
+	// Memory functions
 	bool HasFlags(DWORD flags);
 	bool SetFlags(DWORD flags);
 	bool RemoveFlags(DWORD flags);
