@@ -23,6 +23,7 @@ public:
 
 	// Basic utility functions
 	bool Attach(DWORD dwPID);
+	bool IsAttached();
 	bool Launch(TCHAR *path, TCHAR *commandline);
 	TCHAR *GetProgramLocation();
 

@@ -1,10 +1,18 @@
 #include "PreCompiled.h"
 
 // Constructor for WoWManager will give the program SeDebug privileges
-WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress(NULL), gameVersion(NULL), plr(NULL), cam(NULL)
+WoWManager::WoWManager()
 {
 	HANDLE hToken = INVALID_HANDLE_VALUE;
 	TOKEN_PRIVILEGES tp;
+
+	// Initialize private data
+	hProcess = INVALID_HANDLE_VALUE;
+	dwPID = 0;
+	baseAddress = NULL;
+	gameVersion = 0;
+	plr = NULL;
+	cam = NULL;
 
 	// Grab a token for the current process with adjustment process
 	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
@@ -113,25 +121,6 @@ bool WoWManager::Attach(DWORD dwInPID)
 	} while( Module32Next(hModuleSnap, &me32) );
 	CloseHandle(hModuleSnap);
 
-	// Retrieve the lower word of the version (Ex: 2.4.3.8606 would return 8606)
-	DWORD dwDummy, dwLen;
-	dwLen = GetFileVersionInfoSize(me32.szExePath, &dwDummy);
-	if( dwLen )
-	{
-		BYTE *versionInfo = new BYTE[dwLen];
-		if( versionInfo )
-		{
-			if( GetFileVersionInfo(me32.szExePath, NULL, dwLen, versionInfo) )
-			{
-				UINT uLen;
-				VS_FIXEDFILEINFO *ffi;
-				if( VerQueryValue(versionInfo, _T("\\"), (LPVOID *)&ffi, &uLen) != 0 )
-					gameVersion = LOWORD(ffi->dwFileVersionLS);
-			}
-			delete[] versionInfo;
-		}
-	}
-
 	// Grab the base address of the module
 	baseAddr = me32.modBaseAddr;
 
@@ -168,9 +157,78 @@ bool WoWManager::Attach(DWORD dwInPID)
 	return false;
 }
 
+bool WoWManager::IsAttached()
+{
+	HANDLE hProcessSnap = INVALID_HANDLE_VALUE;
+	PROCESSENTRY32 pe32;
+	TCHAR *ptr = NULL;
+	DWORD dwInPID = 0;
+
+	if( hProcess == NULL || hProcess == INVALID_HANDLE_VALUE || dwPID == 0 || baseAddress == NULL )
+		return false;
+
+	// Create a list of all the processes running on the system (or try until we do)
+	do
+	{
+		hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if( hProcessSnap != INVALID_HANDLE_VALUE )
+			break;
+	} while( GetLastError() == ERROR_BAD_LENGTH );
+
+	if( hProcessSnap == INVALID_HANDLE_VALUE )
+		return FALSE;
+
+	// Start to loop through the process list
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+	if( !Process32First(hProcessSnap, &pe32) )
+		return FALSE;
+
+	// Find "Wow.exe" and save the PID if found
+	do
+	{
+		if( !_tcscmp(pe32.szExeFile, _T("Wow.exe")) )
+		{
+			dwInPID = pe32.th32ProcessID;
+			break;
+		}
+	} while( Process32Next(hProcessSnap, &pe32) );
+	CloseHandle( hProcessSnap );
+
+	// Verify the PID
+	if( dwInPID == 0 || dwInPID != dwPID )
+		return false;
+
+	return true;
+}
+
 // Initialize basic classes and other variables inside of private
 void WoWManager::Initialize()
 {
+	TCHAR *gamePath = GetProgramLocation();
+	if( gamePath != NULL )
+	{
+		// Retrieve the lower word of the version (Ex: 2.4.3.8606 would return 8606)
+		DWORD dwDummy, dwLen;
+		dwLen = GetFileVersionInfoSize(gamePath, &dwDummy);
+		if( dwLen )
+		{
+			BYTE *versionInfo = new BYTE[dwLen];
+			if( versionInfo )
+			{
+				if( GetFileVersionInfo(gamePath, NULL, dwLen, versionInfo) )
+				{
+					UINT uLen;
+					VS_FIXEDFILEINFO *ffi;
+					if( VerQueryValue(versionInfo, _T("\\"), (LPVOID *)&ffi, &uLen) != 0 )
+						gameVersion = LOWORD(ffi->dwFileVersionLS);
+				}
+				delete[] versionInfo;
+			}
+		}
+
+		free(gamePath);
+	}
+
 	plr = new Player(hProcess, baseAddress);
 	cam = new Camera(hProcess, baseAddress);
 }

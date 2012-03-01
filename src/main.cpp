@@ -69,14 +69,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	if( !hwndMain )
 		return FALSE;
 
-	// Create a new instance of the WoWManager, which will also give us debug permissions
-	wm = new WoWManager();
-	if( !wm )
-	{
-		MessageBox( NULL, _T("Cannot initialize WoWManager.\r\nPlease make sure you're running as Administrator."), _T("Error!"), MB_ICONERROR | MB_OK );
-		return 0;
-	}
-
 	// Show the window
 	ShowWindow( hwndMain, nCmdShow );
 	UpdateWindow( hwndMain );

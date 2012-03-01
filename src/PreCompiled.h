@@ -40,4 +40,4 @@ enum WindowIDs
 // Global static variables
 static HWND		hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton,
 				hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic, hwndCommentatorSpeedSlider;
-static WoWManager	*wm;
+static WoWManager	wm;

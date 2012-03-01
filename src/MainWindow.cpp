@@ -106,7 +106,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	hwndCommentatorSpeedStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Speed"), WS_CHILD | WS_VISIBLE,
-		10, 55, 100, 15, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_STATIC, NULL, NULL);
+		10, 55, 110, 15, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_STATIC, NULL, NULL);
 
 	hwndCommentatorSpeedSlider = CreateWindowEx(NULL,
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
@@ -114,7 +114,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	hwndCameraFOVStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Field of View"), WS_CHILD | WS_VISIBLE,
-		140, 55, 100, 15, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
+		140, 55, 110, 15, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
 
 	hwndCameraFOVSlider = CreateWindowEx(NULL,
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
@@ -129,16 +129,18 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndCommentatorSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
-	// Set the min/max of the Commentator speed slider to 1/1000
-	// TODO: allow fractions
-	SendMessage(hwndCommentatorSpeedSlider, TBM_SETRANGE, TRUE, MAKELONG(1, 1000));
-    SendMessage(hwndCommentatorSpeedSlider, TBM_SETPAGESIZE, 0, 1);
+	// Set the min/max of the Commentator speed slider to 1/100000
+	// We use 100 times what the real value is on the max in order to allow decimal places
+	SendMessage(hwndCommentatorSpeedSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)1l);
+	SendMessage(hwndCommentatorSpeedSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)100000l);
+    SendMessage(hwndCommentatorSpeedSlider, TBM_SETPAGESIZE, FALSE, 100);
     SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, 1);
 
 	// Set the min/max of the field of view slider to 0/180
-	// TODO: allow fractions
-	SendMessage(hwndCameraFOVSlider, TBM_SETRANGE, TRUE, MAKELONG(0, 180));
-    SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 1);
+	// We use 100 times what the real value is on the max in order to allow decimal places
+	SendMessage(hwndCameraFOVSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)0l);
+	SendMessage(hwndCameraFOVSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)18000l);
+    SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 100);
     SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, 0);
 
 	// Add "Always on top" to the main windows titlebar right click menu
@@ -183,29 +185,27 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	CloseHandle( hProcessSnap );
 
 	// Attach WoWManager to Wow.exe
-	if( !dwPID || !wm->Attach(dwPID) )
+	if( !dwPID || !wm.Attach(dwPID) )
 	{
-		delete wm;
-		wm = NULL;
 		MessageBox(NULL, _T("Cannot attach to WoW!\r\nPlease make sure that WoW is running and fully logged in, and you're running this tool as Administrator!"), _T("Error!"), MB_ICONERROR | MB_OK);
 		PostMessage(hwnd, WM_CLOSE, 0, 0);
 		return FALSE;
 	}
 
 	// Read the game's memory, and fill in the values for it
-	SendMessage(hwndCommentatorCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsInCommentatorMode() ? BST_CHECKED : BST_UNCHECKED), NULL);
-	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm->GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
-	int pos = (int)wm->GetPlayer()->GetCommentatorCameraSpeed();
-	SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)pos);
+	SendMessage(hwndCommentatorCheckbox, BM_SETCHECK, (WPARAM)(wm.GetPlayer()->IsInCommentatorMode() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm.GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	float pos = wm.GetPlayer()->GetCommentatorCameraSpeed();
+	SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos*100.0f));
 	TCHAR *tmp = new TCHAR[30];
 	ZeroMemory(tmp, 30);
-	_stprintf(tmp, _T("Speed: %u"), pos);
+	_stprintf(tmp, _T("Speed: %.02f"), pos);
 	SendMessage(hwndCommentatorSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 
-	pos = (int)wm->GetCamera()->GetFieldOfView();
-	SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, (LPARAM)pos);
+	pos = wm.GetCamera()->GetFieldOfView();
+	SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos*100.0f));
 	ZeroMemory(tmp, 30);
-	_stprintf(tmp, _T("Field of view: %u�"), pos);
+	_stprintf(tmp, _T("Field of view: %.02f�"), pos);
 	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 	delete[] tmp;
 
@@ -220,45 +220,45 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 	{
 	case HMENU_COMMENTATOR_CHECKBOX:
 		{
-			if( !wm )
+			if( !wm.IsAttached() )
 			{
-				MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
 				break;
 			}
 
 			// Toggle commentator mode
-			if( !wm->GetPlayer()->SetCommentatorMode(SendMessage(hwndCommentatorCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
+			if( !wm.GetPlayer()->SetCommentatorMode(SendMessage(hwndCommentatorCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
 				MessageBox(NULL, _T("Cannot Toggle Commentator Mode!"), _T("Error!"), MB_ICONERROR|MB_OK);
 		}
 		break;
 
 	case HMENU_COMMENTATOR_COLLISION_CHECKBOX:
 		{
-			if( !wm )
+			if( !wm.IsAttached() )
 			{
-				MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
 				break;
 			}
 
 			// Toggle commentator mode's camera collision
-			if( !wm->GetPlayer()->SetCommentatorCameraCollision(SendMessage(hwndCommentatorCollisionCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
+			if( !wm.GetPlayer()->SetCommentatorCameraCollision(SendMessage(hwndCommentatorCollisionCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED) )
 				MessageBox(NULL, _T("Cannot Toggle Commentator Mode's Collision!"), _T("Error!"), MB_ICONERROR|MB_OK);
 		}
 		break;
 
 	case HMENU_TELEPORT_FORWARD_BUTTON:
 		{
-			if( !wm )
+			if( !wm.IsAttached() )
 			{
-				MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
 				break;
 			}
 
 			// Teleport forward by 10 units.
-			Vec4 pos = wm->GetPlayer()->GetPosition();
+			Vec4 pos = wm.GetPlayer()->GetPosition();
 			pos.X += 10.0f * cos(pos.O);
 			pos.Y += 10.0f * sin(pos.O);
-			if( !wm->GetPlayer()->SetPosition(pos) )
+			if( !wm.GetPlayer()->SetPosition(pos) )
 			{
 				MessageBox(NULL, _T("Failed to set position!"), _T("Error!"), MB_ICONERROR|MB_OK);
 				break;
@@ -286,35 +286,35 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		{
 			if( (HWND)lParam == hwndCameraFOVSlider )
 			{
-				if( !wm )
+				if( !wm.IsAttached() )
 				{
-					MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
 					break;
 				}
 
 				// Set the field of view to the position of the slider and update the text to match
-				int pos = SendMessage(hwndCameraFOVSlider, TBM_GETPOS, 0, 0);
-				wm->GetCamera()->SetFieldOfView((float)pos);
+				float pos = (float)SendMessage(hwndCameraFOVSlider, TBM_GETPOS, 0, 0);
+				wm.GetCamera()->SetFieldOfView(pos/100.0f);
 				TCHAR *tmp = new TCHAR[30];
 				ZeroMemory(tmp, 30);
-				_stprintf(tmp, _T("Field of view: %u�"), pos);
+				_stprintf(tmp, _T("Field of view: %.02f�"), pos/100.0f);
 				SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
 			}
 			else if( (HWND)lParam == hwndCommentatorSpeedSlider )
 			{
-				if( !wm )
+				if( !wm.IsAttached() )
 				{
-					MessageBox(NULL, _T("WoWManager is NULL!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
 					break;
 				}
 
 				// Set the Commentator speed to the position of the slider and update the text to match
-				int pos = SendMessage(hwndCommentatorSpeedSlider, TBM_GETPOS, 0, 0);
-				wm->GetPlayer()->SetCommentatorCameraSpeed((float)pos);
+				float pos = (float)SendMessage(hwndCommentatorSpeedSlider, TBM_GETPOS, 0, 0);
+				wm.GetPlayer()->SetCommentatorCameraSpeed(pos/100.0f);
 				TCHAR *tmp = new TCHAR[30];
 				ZeroMemory(tmp, 30);
-				_stprintf(tmp, _T("Speed: %u"), pos);
+				_stprintf(tmp, _T("Speed: %.02f"), pos/100.0f);
 				SendMessage(hwndCommentatorSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
 			}
