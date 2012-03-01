@@ -3,7 +3,6 @@
 /win/*.ncb
 /win/*.suo
 /win/*.user
-/bin/Debug
-/bin/Release
+/bin
 /win/Debug
 /win/Release
