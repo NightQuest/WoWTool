@@ -9,7 +9,7 @@ private:
 	UINT gameVersion;
 
 	Player *plr;
-	WoWCamera *cam;
+	Camera *cam;
 
 	// Basic helper functions
 	void Initialize();
@@ -33,5 +33,5 @@ public:
 
 	// Returns an instance to the Player class that contains Player specific functions
 	Player *GetPlayer() { return plr; }
-	WoWCamera *GetCamera() { return cam; }
+	Camera *GetCamera() { return cam; }
 };

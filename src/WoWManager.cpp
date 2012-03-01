@@ -172,7 +172,7 @@ bool WoWManager::Attach(DWORD dwInPID)
 void WoWManager::Initialize()
 {
 	plr = new Player(hProcess, baseAddress);
-	cam = new WoWCamera(hProcess, baseAddress);
+	cam = new Camera(hProcess, baseAddress);
 }
 
 // delete initializations of classes and other variables inside of private

@@ -1,6 +1,6 @@
 #pragma once
 
-class WoWCamera
+class Camera
 {
 protected:
 	HANDLE hProcess;
@@ -8,8 +8,8 @@ protected:
 	PBYTE GetCameraBase();
 
 public:
-	WoWCamera(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}
-	~WoWCamera() {}
+	Camera(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}
+	~Camera() {}
 
 	float GetFieldOfView();
 	bool SetFieldOfView(float newFov);

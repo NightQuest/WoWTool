@@ -1,7 +1,7 @@
 #include "PreCompiled.h"
 
 // Returns the Base address of the camera block in memory - INTERNAL
-PBYTE WoWCamera::GetCameraBase()
+PBYTE Camera::GetCameraBase()
 {
 	PBYTE cam = NULL;
 	SIZE_T size = 0;
@@ -16,7 +16,7 @@ PBYTE WoWCamera::GetCameraBase()
 }
 
 // Returns the Cameras field of view in degrees
-float WoWCamera::GetFieldOfView()
+float Camera::GetFieldOfView()
 {
 	PBYTE Cam = GetCameraBase();
 	SIZE_T size = 0;
@@ -34,7 +34,7 @@ float WoWCamera::GetFieldOfView()
 
 // Sets the new field of view (passed float is degrees)
 // Return true on success
-bool WoWCamera::SetFieldOfView(float newFov)
+bool Camera::SetFieldOfView(float newFov)
 {
 	PBYTE Cam = GetCameraBase();
 	SIZE_T size = 0;
