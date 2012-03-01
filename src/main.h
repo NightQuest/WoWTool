@@ -12,8 +12,8 @@
 
 #include "resource.h"
 #include "Defines.h"
-#include "WoWCamera.h"
-#include "WoWPlayer.h"
+#include "Camera.h"
+#include "Player.h"
 #include "WoWManager.h"
 
 BOOL InitApplication(HINSTANCE hInstance);

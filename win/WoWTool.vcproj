@@ -198,6 +198,34 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Classes"
+			>
+			<File
+				RelativePath="..\src\Camera.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\Camera.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\Player.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\Player.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\WoWManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\WoWManager.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\src\Defines.h"
 			>
@@ -228,34 +256,6 @@
 		</File>
 		<File
 			RelativePath="..\src\version.txt"
-			>
-		</File>
-		<File
-			RelativePath="..\src\VersionNo.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\WoWCamera.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\src\WoWCamera.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\WoWManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\src\WoWManager.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\WoWPlayer.cpp"
-			>
-		</File>
-		<File
-			RelativePath="..\src\WoWPlayer.h"
 			>
 		</File>
 	</Files>
