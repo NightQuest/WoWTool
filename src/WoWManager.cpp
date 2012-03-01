@@ -1,4 +1,4 @@
-#include "main.h"
+#include "PreCompiled.h"
 
 // Constructor for WoWManager will give the program SeDebug privileges
 WoWManager::WoWManager() : hProcess(INVALID_HANDLE_VALUE), dwPID(0), baseAddress(NULL), gameVersion(NULL), plr(NULL), cam(NULL)

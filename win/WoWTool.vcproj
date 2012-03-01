@@ -48,7 +48,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="main.h"
+				PrecompiledHeaderThrough="PreCompiled.h"
 				WarningLevel="3"
 				DebugInformationFormat="4"
 			/>
@@ -128,7 +128,7 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="main.h"
+				PrecompiledHeaderThrough="PreCompiled.h"
 				WarningLevel="3"
 				DebugInformationFormat="1"
 			/>
@@ -181,7 +181,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Resource Files"
+			Name="Resources"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
@@ -199,61 +199,93 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Classes"
+			Name="WoW"
 			>
 			<File
-				RelativePath="..\src\Camera.cpp"
+				RelativePath="..\src\Defines.h"
+				>
+			</File>
+			<Filter
+				Name="Classes"
+				>
+				<File
+					RelativePath="..\src\Camera.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\Camera.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\Player.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\Player.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\WoWManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\WoWManager.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Windows"
+			>
+			<File
+				RelativePath="..\src\main.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\main.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\Camera.h"
+				RelativePath="..\src\MainWindow.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\src\Player.cpp"
+				RelativePath="..\src\MainWindow.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\Player.h"
+				RelativePath="..\src\PreCompiled.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\WoWManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\WoWManager.h"
+				RelativePath="..\src\PreCompiled.h"
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\src\Defines.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\main.cpp"
-			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\src\main.h"
-			>
-		</File>
 		<File
 			RelativePath="..\src\version.txt"
 			>

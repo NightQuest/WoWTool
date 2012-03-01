@@ -1,4 +1,4 @@
-#include "main.h"
+#include "PreCompiled.h"
 
 // Returns the Base address of the player block in memory - INTERNAL
 PBYTE WoWPlayer::GetPlayerBase()
