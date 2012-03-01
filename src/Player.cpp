@@ -145,8 +145,6 @@ bool Player::IsInCommentatorMode()
 // Returns true on success
 bool Player::SetCommentatorMode(bool bEnable)
 {
-	// Retrieve the player flags
-	DWORD PlrFlags = GetFlags();
 	SIZE_T size = 0;
 
 	if( bEnable )
@@ -218,14 +216,13 @@ bool Player::IsCommentatorCameraCollidable()
 // Returns a XYZO vector of the players coordinates
 Vec4 Player::GetPosition()
 {
+	// Grab the player X,Y,Z,O coordinates
 	Vec4 pos = { NULL };
-	PBYTE Plr = GetPlayerBase();
-	SIZE_T size = 0;
-	if( Plr == NULL )
-		return pos;
+	pos.X = GetPosX();
+	pos.Y = GetPosY();
+	pos.Z = GetPosZ();
+	pos.O = GetPosO();
 
-	// Read the current position of the player
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET_8606), &pos, sizeof(Vec4), &size);
 	return pos;
 }
 
@@ -297,32 +294,16 @@ float Player::GetPosO()
 // Returns true on success
 bool Player::SetPosition(Vec4 pos)
 {
-	SIZE_T size = 0;
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
-		return false;
-
 	// Set the current position of the player
-	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET_8606), &pos, sizeof(Vec4), &size) || size != sizeof(Vec4) )
-		return false;
-
-	return true;
+	return (SetPosX(pos.X) && SetPosY(pos.Y) && SetPosZ(pos.Z) && SetPosO(pos.O));
 }
 
 // Sets the XYZ coordinates of the player using a vector
 // Returns true on success
 bool Player::SetPosition(Vec3 pos)
 {
-	SIZE_T size = 0;
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
-		return false;
-
 	// Set the current position of the player
-	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET_8606), &pos, sizeof(Vec3), &size) || size != sizeof(Vec4) )
-		return false;
-
-	return true;
+	return (SetPosX(pos.X) && SetPosY(pos.Y) && SetPosZ(pos.Z));
 }
 
 // Sets the XYZO coordinates of the player
