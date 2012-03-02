@@ -281,6 +281,7 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 				break;
 			}
 
+			// Set the render flags to toggle wireframe
 			DWORD flags = wm.GetRenderingFlags();
 			if( SendMessage(hwndWireframeCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
 				flags |= RENDER_FLAG_WIREFRAME;
