@@ -35,9 +35,11 @@ enum WindowIDs
 	HMENU_TELEPORT_FORWARD_BUTTON,
 	HMENU_CAMERA_FOV_STATIC,
 	HMENU_CAMERA_FOV_SLIDER,
+	HMENU_RENDER_WIREFRAME_CHECKBOX,
 };
 
 // Global static variables
 static HWND		hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton,
-				hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic, hwndCommentatorSpeedSlider;
+				hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic, hwndCommentatorSpeedSlider,
+				hwndWireframeCheckbox;
 static WoWManager	wm;

@@ -29,7 +29,7 @@ PBYTE Player::GetPlayerFlagsBase()
 		return NULL;
 
 	// Return 8 bytes past the base to be able to retrieve the player flags bitmask
-	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAGS_8606) : NULL);
+	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAG_8606) : NULL);
 }
 
 // Calculates the distance from the specified coordinates
@@ -138,7 +138,7 @@ bool Player::RemoveFlags(DWORD flags)
 // Returns whether or not the player is in commentator mode
 bool Player::IsInCommentatorMode()
 {
-	return HasFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
+	return HasFlags(PLAYER_FLAG_COMMENTATOR|PLAYER_FLAG_CAN_USE_COMMENTATOR_COMMANDS);
 }
 
 // Toggles commentator mode
@@ -164,11 +164,11 @@ bool Player::SetCommentatorMode(bool bEnable)
 			return false;
 
 		// Write the player flags back to memory, to enable commentator mode
-		return SetFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
+		return SetFlags(PLAYER_FLAG_COMMENTATOR|PLAYER_FLAG_CAN_USE_COMMENTATOR_COMMANDS);
 	}
 
 	// Write the player flags back to memory, to disable commentator mode
-	return RemoveFlags(PLAYER_FLAGS_COMMENTATOR|PLAYER_FLAGS_CAN_USE_COMMENTATOR_COMMANDS);
+	return RemoveFlags(PLAYER_FLAG_COMMENTATOR|PLAYER_FLAG_CAN_USE_COMMENTATOR_COMMANDS);
 }
 
 // Sets the commentator camera speed multiplier

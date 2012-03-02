@@ -120,6 +120,10 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
 		135, 70, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
 
+	hwndWireframeCheckbox = CreateWindowEx(NULL,
+		_T("Button"), _T("Wireframe"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		140, 95, 70, 23, hwnd, (HMENU)HMENU_RENDER_WIREFRAME_CHECKBOX, NULL, NULL);
+
 
 	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -128,6 +132,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndTeleportForwardButton, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndWireframeCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
 	// Set the min/max of the Commentator speed slider to 1/100000
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -209,6 +214,8 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 	delete[] tmp;
 
+	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)((wm.GetRenderingFlags() & RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
+
 	return FALSE;
 }
 
@@ -261,6 +268,28 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			if( !wm.GetPlayer()->SetPosition(pos) )
 			{
 				MessageBox(NULL, _T("Failed to set position!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
+		}
+		break;
+
+	case HMENU_RENDER_WIREFRAME_CHECKBOX:
+		{
+			if( !wm.IsAttached() )
+			{
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
+
+			DWORD flags = wm.GetRenderingFlags();
+			if( SendMessage(hwndWireframeCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
+				flags |= RENDER_FLAG_WIREFRAME;
+			else
+				flags &= ~RENDER_FLAG_WIREFRAME;
+
+			if( !wm.SetRenderingFlags(flags) )
+			{
+				MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
 				break;
 			}
 		}

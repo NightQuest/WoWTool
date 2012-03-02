@@ -164,6 +164,7 @@ bool WoWManager::IsAttached()
 	TCHAR *ptr = NULL;
 	DWORD dwInPID = 0;
 
+	// All of these should have a value if we're attached to the game
 	if( hProcess == NULL || hProcess == INVALID_HANDLE_VALUE || dwPID == 0 || baseAddress == NULL )
 		return false;
 
@@ -331,7 +332,7 @@ TCHAR *WoWManager::GetProgramLocation()
 // Returns true on success
 bool WoWManager::SetAnimationSpeed(double speed)
 {
-	if( !hProcess || !dwPID )
+	if( !IsAttached() )
 		return false;
 
 	SIZE_T size;
@@ -343,9 +344,37 @@ bool WoWManager::SetAnimationSpeed(double speed)
 // Returns true on success
 bool WoWManager::SetGameSpeed(double speed)
 {
-	if( !hProcess || !dwPID )
+	if( !IsAttached() )
 		return false;
 
 	SIZE_T size;
 	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_GAME_SPEED_8606), &speed, sizeof(double), &size) && size == sizeof(double));
+}
+
+// Returns the bitmask that the game uses to decide what and how to render the scene
+// Default: 0x1F104F73
+DWORD WoWManager::GetRenderingFlags()
+{
+	DWORD bitmask = 0;
+	SIZE_T size = 0;
+
+	if( !IsAttached() )
+		return NULL;
+
+	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &bitmask, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return NULL;
+
+	return bitmask;
+}
+
+// Sets the bitmask that the game uses to decide what and how to render the scene
+// Returns true on success
+bool WoWManager::SetRenderingFlags(DWORD flags)
+{
+	SIZE_T size = 0;
+
+	if( !IsAttached() )
+		return false;
+
+	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &flags, sizeof(DWORD), &size) && size == sizeof(DWORD));
 }

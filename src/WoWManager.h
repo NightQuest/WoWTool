@@ -31,6 +31,9 @@ public:
 	// Engine functions
 	bool SetAnimationSpeed(double speed);
 	bool SetGameSpeed(double speed);
+	DWORD GetRenderingFlags();
+	bool SetRenderingFlags(DWORD flags);
+
 
 	// Returns an instance to the Player class that contains Player specific functions
 	Player *GetPlayer() { return plr; }
