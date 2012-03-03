@@ -7,54 +7,32 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	{
 	// Called when the main windows gets created
 	case WM_CREATE:
-		HandleMainWindowCreate(hwnd, msg, wParam, lParam);
+		return HandleMainWindowCreate(hwnd, msg, wParam, lParam);
 		break;
 
 	// Called when the main window is shown via ShowWindow()
 	case WM_SHOWWINDOW:
-		HandleMainWindowShowWindow(hwnd, msg, wParam, lParam);
+		return HandleMainWindowShowWindow(hwnd, msg, wParam, lParam);
 		break;
 
 	// Called when the main window recieves a user command (Eg: Right-click)
 	case WM_COMMAND:
-		HandleMainWindowCommand(hwnd, msg, wParam, lParam);
+		return HandleMainWindowCommand(hwnd, msg, wParam, lParam);
 		break;
 
 	// Called when a horizontal scroll occurs in the main window
 	case WM_HSCROLL:
-		HandleMainWindowHScroll(hwnd, msg, wParam, lParam);
+		return HandleMainWindowHScroll(hwnd, msg, wParam, lParam);
 		break;
 
 	// Called when a SYSCOMMAND happens (Eg: Right clicking the title bar)
 	case WM_SYSCOMMAND:
-		{
-			// Main titlebar right click menu
-			if( wParam == HMENU_MAIN_WINDOW_SYSMENU )
-			{
-				LONG dwStyle = GetWindowLong(hwndMain, GWL_EXSTYLE);
-				if( dwStyle & WS_EX_TOPMOST )
-				{
-					// Grab the menu for the titlebar,
-					// Set our custom item to unchecked,
-					// And update the window via moving it nowhere
-					HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
-					CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU, MF_BYCOMMAND|MF_UNCHECKED);
-					SetWindowPos(hwndMain, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-				}
-				else
-				{
-					// Grab the menu for the titlebar,
-					// Set our custom item to checked,
-					// And update the window via moving it nowhere
-					HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
-					CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU, MF_BYCOMMAND|MF_CHECKED);
-					SetWindowPos(hwndMain, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-				}
-				return FALSE;
-			}
-			else
-				DefWindowProc(hwnd, msg, wParam, lParam);
-		}
+		return HandleMainWindowSysCommand(hwnd, msg, wParam, lParam);
+		break;
+
+	// Called before a menu is displayed, giving us time to modify it
+	case WM_INITMENUPOPUP:
+		return HandleMainWindowInitMenuPopup(hwnd, msg, wParam, lParam);
 		break;
 
 	// Called when the user clicks the 'X' on our main window usually
@@ -150,7 +128,10 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	// Add "Always on top" to the main windows titlebar right click menu
 	HMENU hMenu = GetSystemMenu(hwnd, FALSE);
-	AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU, _T("Always on top"));
+	AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU_TOPMOST, _T("Always on top"));
+
+	// Easteregg (Except to those who look in a Debugger..)
+	AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG, _T("Do a barrel roll!"));
 
 	return FALSE;
 }
@@ -215,6 +196,56 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	delete[] tmp;
 
 	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)((wm.GetRenderingFlags() & RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
+
+	return FALSE;
+}
+
+// Function called when the main window recieves a system command (right click of the titlebar for instance)
+LRESULT CALLBACK HandleMainWindowSysCommand(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	switch(wParam)
+	{
+	// Main titlebar right click menu "Always on top"
+	case HMENU_MAIN_WINDOW_SYSMENU_TOPMOST:
+		{
+			LONG dwStyle = GetWindowLong(hwndMain, GWL_EXSTYLE);
+			if( dwStyle & WS_EX_TOPMOST )
+			{
+				// Grab the menu for the titlebar,
+				// Set our custom item to unchecked,
+				// And update the window via moving it nowhere
+				HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
+				CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU_TOPMOST, MF_BYCOMMAND|MF_UNCHECKED);
+				SetWindowPos(hwndMain, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			}
+			else
+			{
+				// Grab the menu for the titlebar,
+				// Set our custom item to checked,
+				// And update the window via moving it nowhere
+				HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
+				CheckMenuItem(hMenu, HMENU_MAIN_WINDOW_SYSMENU_TOPMOST, MF_BYCOMMAND|MF_CHECKED);
+				SetWindowPos(hwndMain, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+			}
+		}
+		break;
+
+	// Main titlebar right click menu "Do a barrel roll!"
+	case HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG:
+		{
+			float OriginalCameraRoll = wm.GetCamera()->GetRoll();
+			for( int x = 0; x < 60; x++ )
+			{
+				wm.GetCamera()->SetRoll(wm.GetCamera()->GetRoll() + (360.0f/60.0f));
+				Sleep(2000/60);
+			}
+			wm.GetCamera()->SetRoll(OriginalCameraRoll);
+		}
+		break;
+
+	default:
+		return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
 
 	return FALSE;
 }
@@ -351,5 +382,21 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 		}
 		break;
 	}
+	return FALSE;
+}
+
+// Function called before a menu is shown, allowing us time to modify it
+LRESULT CALLBACK HandleMainWindowInitMenuPopup(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+	HMENU hMenu = GetSystemMenu(hwndMain, FALSE);
+	if( (HMENU)wParam == hMenu )
+	{
+		RemoveMenu(hMenu, HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG, MF_BYCOMMAND);
+		if( (GetKeyState(VK_CONTROL) & 0x8000) ) // 0x8000 is a high-order bit of 1 I guess.. O_o
+		{
+			AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG, _T("Do a barrel roll!"));
+		}
+	}
+
 	return FALSE;
 }

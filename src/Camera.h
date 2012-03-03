@@ -13,4 +13,6 @@ public:
 
 	float GetFieldOfView();
 	bool SetFieldOfView(float newFov);
+	float GetRoll();
+	bool SetRoll(float newRoll);
 };

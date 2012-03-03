@@ -55,3 +55,44 @@ bool Camera::SetFieldOfView(float newFov)
 
 	return true;
 }
+
+// Returns the camera roll in degrees
+float Camera::GetRoll()
+{
+	PBYTE Cam = GetCameraBase();
+	SIZE_T size = 0;
+	float roll = 0.0f;
+
+	if( !Cam )
+		return 0.0f;
+
+	// Read 10C bytes past the camera base to retrieve the camera roll.
+	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_8606), &roll, sizeof(float), &size) )
+		return 0.0f;
+
+	// Return the result in degrees, not radians
+	return (roll * (360.0f/(float)(M_PI*2)));
+}
+
+// Sets the camera roll (passed float is in degrees)
+// Returns true on success
+bool Camera::SetRoll(float newRoll)
+{
+	PBYTE Cam = GetCameraBase();
+	SIZE_T size = 0;
+
+	if( !Cam )
+		return false;
+
+	while( newRoll > 360.0f )
+		newRoll -= 360.0f;
+
+	// Convert the roll from degrees to radians
+	newRoll = newRoll * ((float)(M_PI*2)/360.0f);
+
+	// Set the new field of view
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_8606), &newRoll, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
