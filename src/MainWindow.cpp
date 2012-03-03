@@ -237,7 +237,7 @@ LRESULT CALLBACK HandleMainWindowSysCommand(HWND hwnd, UINT msg, WPARAM wParam, 
 			for( int x = 0; x < 60; x++ )
 			{
 				wm.GetCamera()->SetRoll(wm.GetCamera()->GetRoll() + (360.0f/60.0f));
-				Sleep(2000/60);
+				Sleep(1000/60);
 			}
 			wm.GetCamera()->SetRoll(OriginalCameraRoll);
 		}
@@ -313,16 +313,21 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			}
 
 			// Set the render flags to toggle wireframe
-			DWORD flags = wm.GetRenderingFlags();
 			if( SendMessage(hwndWireframeCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
-				flags |= RENDER_FLAG_WIREFRAME;
-			else
-				flags &= ~RENDER_FLAG_WIREFRAME;
-
-			if( !wm.SetRenderingFlags(flags) )
 			{
-				MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
-				break;
+				if( !wm.SetRenderingFlags(RENDER_FLAG_WIREFRAME) )
+				{
+					MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+			}
+			else
+			{
+				if( !wm.RemoveRenderingFlags(RENDER_FLAG_WIREFRAME) )
+				{
+					MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
 			}
 		}
 		break;

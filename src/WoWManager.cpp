@@ -367,14 +367,48 @@ DWORD WoWManager::GetRenderingFlags()
 	return bitmask;
 }
 
+// Checks to see if the passed bitmask exists in the rendering flags bitmask.
+// Returns true on success.
+bool WoWManager::HasRenderingFlags(DWORD flags) { return (GetRenderingFlags() & flags) > 0; }
+
 // Sets the bitmask that the game uses to decide what and how to render the scene
 // Returns true on success
 bool WoWManager::SetRenderingFlags(DWORD flags)
 {
+	DWORD RenderingFlags = NULL;
 	SIZE_T size = 0;
 
 	if( !IsAttached() )
 		return false;
 
-	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &flags, sizeof(DWORD), &size) && size == sizeof(DWORD));
+	// Read the rendering flags and do a bitwise OR on them, adding the passed flags to them
+	RenderingFlags = GetRenderingFlags() | flags;
+
+
+	// Write the new flags back to the rendering flags in memory
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return false;
+
+	return true;
+}
+
+
+// Does a bitwise inverse OR on the rendering flags, removing whatever is passed.
+// Returns true on success.
+bool WoWManager::RemoveRenderingFlags(DWORD flags)
+{
+	DWORD RenderingFlags = NULL;
+	SIZE_T size = 0;
+
+	if( !IsAttached() )
+		return false;
+
+	// Read the rendering flags and do a bitwise inverse AND on them, removing the passed flags from them
+	RenderingFlags = GetRenderingFlags() & ~flags;
+
+	// Write the new flags back to the rendering flags in memory
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return false;
+
+	return true;
 }

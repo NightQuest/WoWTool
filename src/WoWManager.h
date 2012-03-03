@@ -32,7 +32,9 @@ public:
 	bool SetAnimationSpeed(double speed);
 	bool SetGameSpeed(double speed);
 	DWORD GetRenderingFlags();
+	bool HasRenderingFlags(DWORD flags);
 	bool SetRenderingFlags(DWORD flags);
+	bool RemoveRenderingFlags(DWORD flags);
 
 
 	// Returns an instance to the Player class that contains Player specific functions
