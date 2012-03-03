@@ -14,6 +14,8 @@
 
 // WoW stuff
 #include "Defines.h"
+#include "Defines_8606.h"
+#include "Defines_12340.h"
 #include "Camera.h"
 #include "Player.h"
 #include "WoWManager.h"
