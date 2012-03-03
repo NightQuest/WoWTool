@@ -205,6 +205,14 @@
 				RelativePath="..\src\Defines.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\Defines_12340.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\Defines_8606.h"
+				>
+			</File>
 			<Filter
 				Name="Classes"
 				>
