@@ -31,6 +31,7 @@ enum WindowIDs
 	HMENU_MAIN_WINDOW_SYSMENU_TOPMOST = 20,
 	HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG = 21,
 	HMENU_MAIN_WINDOW = 110,
+	HMENU_COMMENTATOR_GROUPBOX,
 	HMENU_COMMENTATOR_CHECKBOX,
 	HMENU_COMMENTATOR_COLLISION_CHECKBOX,
 	HMENU_COMMENTATOR_SPEED_STATIC,
@@ -42,7 +43,7 @@ enum WindowIDs
 };
 
 // Global static variables
-static HWND		hwndMain, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox, hwndTeleportForwardButton,
-				hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic, hwndCommentatorSpeedSlider,
-				hwndWireframeCheckbox;
+static HWND		hwndMain, hwndCommentatorModeGroupBox, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox,
+				hwndTeleportForwardButton,	hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic,
+				hwndCommentatorSpeedSlider,	hwndWireframeCheckbox;
 static WoWManager	wm;

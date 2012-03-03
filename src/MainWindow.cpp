@@ -70,25 +70,29 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	}
 
 	// Create all the main UI elements
+	hwndCommentatorModeGroupBox = CreateWindowEx(NULL,
+		_T("Button"), _T("Commentator mode"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_GROUPBOX,
+		10, 5, 110, 100, hwnd, (HMENU)HMENU_COMMENTATOR_GROUPBOX, NULL, NULL);
+
 	hwndCommentatorCheckbox = CreateWindowEx(NULL,
-		_T("Button"), _T("Commentator Mode"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		10, 5, 120, 23, hwnd, (HMENU)HMENU_COMMENTATOR_CHECKBOX, NULL, NULL);
+		_T("Button"), _T("Enabled"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		20, 20, 60, 23, hwnd, (HMENU)HMENU_COMMENTATOR_CHECKBOX, NULL, NULL);
 
 	hwndCommentatorCollisionCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Collision"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		10, 30, 70, 23, hwnd, (HMENU)HMENU_COMMENTATOR_COLLISION_CHECKBOX, NULL, NULL);
+		20, 40, 60, 23, hwnd, (HMENU)HMENU_COMMENTATOR_COLLISION_CHECKBOX, NULL, NULL);
+
+	hwndCommentatorSpeedStatic = CreateWindowEx(NULL,
+		_T("Static"), _T("Speed"), WS_CHILD | WS_VISIBLE,
+		20, 65, 80, 15, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_STATIC, NULL, NULL);
+
+	hwndCommentatorSpeedSlider = CreateWindowEx(NULL,
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
+		13, 80, 100, 23, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_SLIDER, NULL, NULL);
 
 	hwndTeleportForwardButton = CreateWindowEx(NULL,
 		_T("Button"), _T("Teleport Forward"), WS_CHILD | WS_VISIBLE,
 		140, 5, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
-
-	hwndCommentatorSpeedStatic = CreateWindowEx(NULL,
-		_T("Static"), _T("Speed"), WS_CHILD | WS_VISIBLE,
-		10, 55, 110, 15, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_STATIC, NULL, NULL);
-
-	hwndCommentatorSpeedSlider = CreateWindowEx(NULL,
-		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
-		3, 70, 100, 23, hwnd, (HMENU)HMENU_COMMENTATOR_SPEED_SLIDER, NULL, NULL);
 
 	hwndCameraFOVStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Field of View"), WS_CHILD | WS_VISIBLE,
@@ -105,6 +109,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
+	SendMessage(hwndCommentatorModeGroupBox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCommentatorCollisionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndTeleportForwardButton, WM_SETFONT, (WPARAM)hfFont, TRUE);
