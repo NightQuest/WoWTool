@@ -195,7 +195,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 	delete[] tmp;
 
-	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)((wm.GetRenderingFlags() & RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
 
 	return FALSE;
 }
