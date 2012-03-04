@@ -91,7 +91,7 @@ DWORD Player::GetFlags()
 
 // Checks to see if the passed bitmask exists in the player flags bitmask.
 // Returns true on success.
-bool Player::HasFlags(DWORD flags) { return (GetFlags() & flags) > 0; }
+bool Player::HasFlags(DWORD flags) { return ((GetFlags() & flags) == flags); }
 
 // Does a bitwise OR operation on the player flags, adding whatever is passed.
 // Returns true on success.
