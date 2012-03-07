@@ -7,6 +7,7 @@ protected:
 	PBYTE baseAddress;
 	PBYTE GetPlayerBase();
 	PBYTE GetPlayerFlagsBase();
+	PBYTE GetPlayerMovementInfoBase();
 
 public:
 	Player(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}

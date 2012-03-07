@@ -29,7 +29,24 @@ PBYTE Player::GetPlayerFlagsBase()
 		return NULL;
 
 	// Return 8 bytes past the base to be able to retrieve the player flags bitmask
-	return (FlagsPtr ? (FlagsPtr  + PLAYER_FLAG_8606) : NULL);
+	return (FlagsPtr ? (FlagsPtr  + PLAYER_FIELDS_FLAGS_8606) : NULL);
+}
+
+// Returns the base address of the player movement info in memory - INTERNAL
+PBYTE Player::GetPlayerMovementInfoBase()
+{
+	PBYTE Plr = GetPlayerBase();
+	if( Plr == NULL )
+		return false;
+
+	PBYTE MovementInfo = NULL;
+	SIZE_T size = 0;
+
+	// Read the Player MovementInfo pointer
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_MOVEMENT_INFO_OFFSET_8606), &MovementInfo, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+		return NULL;
+
+	return MovementInfo;
 }
 
 // Calculates the distance from the specified coordinates
@@ -178,7 +195,7 @@ float Player::GetCommentatorCameraYaw()
 	float yaw = 0.0f;
 
 	// Read the Commentator's Camera's Yaw
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_YAW_8606), &yaw, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_YAW_8606), &yaw, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	// Return the result in degrees, not radians
@@ -198,7 +215,7 @@ bool Player::SetCommentatorCameraYaw(float newYaw)
 	newYaw *= ((float)(M_PI*2)/360.0f);
 
 	// Set the new yaw
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_YAW_8606), &newYaw, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_YAW_8606), &newYaw, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -210,7 +227,7 @@ float Player::GetCommentatorCameraPitch()
 	SIZE_T size;
 	float pitch = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_PITCH_8606), &pitch, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_PITCH_8606), &pitch, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	// Pitch is stored from negative PI/2 to positive PI/2, so we add PI/2 before converting to degrees
@@ -231,7 +248,7 @@ bool Player::SetCommentatorCameraPitch(float newPitch)
 	newPitch = (newPitch * ((float)M_PI/180.0f)) + ((float)M_PI/2);
 
 	// Write the new pitch to memory
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_PITCH_8606), &newPitch, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_PITCH_8606), &newPitch, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -243,7 +260,7 @@ float Player::GetCommentatorCameraPosX()
 	SIZE_T size;
 	float X = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_X_8606), &X, sizeof(float), &size) || size != sizeof(float))
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_X_8606), &X, sizeof(float), &size) || size != sizeof(float))
 		return 0.0f;
 
 	return X;
@@ -255,7 +272,7 @@ bool Player::SetCommentatorCameraPosX(float X)
 {
 	SIZE_T size = 0;
 
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_X_8606), &X, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_X_8606), &X, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -267,7 +284,7 @@ float Player::GetCommentatorCameraPosY()
 	SIZE_T size;
 	float Y = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Y_8606), &Y, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Y_8606), &Y, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	return Y;
@@ -279,7 +296,7 @@ bool Player::SetCommentatorCameraPosY(float Y)
 {
 	SIZE_T size = 0;
 
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Y_8606), &Y, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Y_8606), &Y, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -291,7 +308,7 @@ float Player::GetCommentatorCameraPosZ()
 	SIZE_T size;
 	float Z = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Z_8606), &Z, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Z_8606), &Z, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	return Z;
@@ -303,7 +320,7 @@ bool Player::SetCommentatorCameraPosZ(float Z)
 {
 	SIZE_T size = 0;
 
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_Z_8606), &Z, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Z_8606), &Z, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -343,7 +360,7 @@ bool Player::SetCommentatorCameraPosition(Vec3 pos)
 bool Player::SetCommentatorCameraSpeed(float speed)
 {
 	SIZE_T size = 0;
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 	return true;
 }
@@ -354,7 +371,7 @@ float Player::GetCommentatorCameraSpeed()
 	SIZE_T size;
 	float speed = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) )
 		return 0.0f;
 
 	return speed;
@@ -365,7 +382,7 @@ float Player::GetCommentatorCameraSpeed()
 bool Player::SetCommentatorCameraCollision(bool bEnable)
 {
 	SIZE_T size = 0;
-	if( !WriteProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_COLLISION_8606), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_COLLISION_8606), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 	return true;
 }
@@ -376,7 +393,7 @@ bool Player::IsCommentatorCameraCollidable()
 	SIZE_T size;
 	bool bCollision = false;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_COMMENTATOR_COLLISION_8606), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_COLLISION_8606), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 
 	return bCollision;
@@ -398,15 +415,15 @@ Vec4 Player::GetPosition()
 // Returns the players X coordinate
 float Player::GetPosX()
 {
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	float pX = 0.0f;
 	SIZE_T size = 0;
 
 	// Read the current position of the players X coordinate
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET_8606), &pX, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_X_OFFSET_8606), &pX, sizeof(float), &size);
 
 	return pX;
 }
@@ -414,15 +431,15 @@ float Player::GetPosX()
 // Returns the players Y coordinate
 float Player::GetPosY()
 {
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	float pY = 0.0f;
 	SIZE_T size = 0;
 
 	// Read the current position of the players Y coordinate
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_Y_OFFSET_8606), &pY, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Y_OFFSET_8606), &pY, sizeof(float), &size);
 
 	return pY;
 }
@@ -430,15 +447,15 @@ float Player::GetPosY()
 // Returns the players Z coordinate
 float Player::GetPosZ()
 {
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	float pZ = 0.0f;
 	SIZE_T size = 0;
 
 	// Read the current position of the players Z coordinate
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_Z_OFFSET_8606), &pZ, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Z_OFFSET_8606), &pZ, sizeof(float), &size);
 
 	return pZ;
 }
@@ -446,15 +463,15 @@ float Player::GetPosZ()
 // Returns the players orientation (Tau)
 float Player::GetPosO()
 {
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	float pO = 0.0f;
 	SIZE_T size = 0;
 
 	// Read the current position of the players orientation
-	ReadProcessMemory(hProcess, (Plr + PLAYER_POSITION_O_OFFSET_8606), &pO, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_8606), &pO, sizeof(float), &size);
 
 	return pO;
 }
@@ -488,12 +505,12 @@ bool Player::SetPosition(float X, float Y, float Z, float O)
 bool Player::SetPosX(float newX)
 {
 	SIZE_T size = 0;
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	// Set the current position of the players X coordinate
-	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_X_OFFSET_8606), &newX, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_X_OFFSET_8606), &newX, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -504,12 +521,12 @@ bool Player::SetPosX(float newX)
 bool Player::SetPosY(float newY)
 {
 	SIZE_T size = 0;
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	// Set the current position of the players Y coordinate
-	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_Y_OFFSET_8606), &newY, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Y_OFFSET_8606), &newY, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -520,12 +537,12 @@ bool Player::SetPosY(float newY)
 bool Player::SetPosZ(float newZ)
 {
 	SIZE_T size = 0;
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	// Set the current position of the players Z coordinate
-	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_Z_OFFSET_8606), &newZ, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Z_OFFSET_8606), &newZ, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -536,12 +553,12 @@ bool Player::SetPosZ(float newZ)
 bool Player::SetPosO(float newO)
 {
 	SIZE_T size = 0;
-	PBYTE Plr = GetPlayerBase();
-	if( Plr == NULL )
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
 		return false;
 
 	// Set the current position of the players orientation
-	if( !WriteProcessMemory(hProcess, (Plr + PLAYER_POSITION_O_OFFSET_8606), &newO, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_8606), &newO, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
