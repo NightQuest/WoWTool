@@ -564,7 +564,7 @@ bool Player::SetPosO(float newO)
 	return true;
 }
 
-
+// Retrieves the players current movement speed
 float Player::GetCurrentMovementSpeed()
 {
 	SIZE_T size = 0;
@@ -580,6 +580,7 @@ float Player::GetCurrentMovementSpeed()
 	return speed;
 }
 
+// Retrieves the players walk speed (When / is toggled)
 float Player::GetWalkSpeed()
 {
 	SIZE_T size = 0;
@@ -595,6 +596,7 @@ float Player::GetWalkSpeed()
 	return speed;
 }
 
+// Retrieves the players run speed
 float Player::GetRunSpeed()
 {
 	SIZE_T size = 0;
@@ -610,6 +612,7 @@ float Player::GetRunSpeed()
 	return speed;
 }
 
+// Retrieves the players backwards run speed
 float Player::GetRunBackwardsSpeed()
 {
 	SIZE_T size = 0;
@@ -625,6 +628,7 @@ float Player::GetRunBackwardsSpeed()
 	return speed;
 }
 
+// Retrieves the players swim speed
 float Player::GetSwimSpeed()
 {
 	SIZE_T size = 0;
@@ -640,6 +644,7 @@ float Player::GetSwimSpeed()
 	return speed;
 }
 
+// Retrieves the players backwards swim speed
 float Player::GetSwimBackwardsSpeed()
 {
 	SIZE_T size = 0;
@@ -655,6 +660,7 @@ float Player::GetSwimBackwardsSpeed()
 	return speed;
 }
 
+// Retrieves the players fly speed
 float Player::GetFlySpeed()
 {
 	SIZE_T size = 0;
@@ -670,6 +676,7 @@ float Player::GetFlySpeed()
 	return speed;
 }
 
+// Retrieves the players backwards fly speed
 float Player::GetFlyBackwardsSpeed()
 {
 	SIZE_T size = 0;
@@ -685,6 +692,7 @@ float Player::GetFlyBackwardsSpeed()
 	return speed;
 }
 
+// Retrieves the players yaw rotation speed
 float Player::GetYawRotateSpeed()
 {
 	SIZE_T size = 0;
@@ -700,6 +708,7 @@ float Player::GetYawRotateSpeed()
 	return speed;
 }
 
+// Retrieves the players pitch rotation speed (Eg: on a flymount)
 float Player::GetPitchRotateSpeed()
 {
 	SIZE_T size = 0;
@@ -715,6 +724,8 @@ float Player::GetPitchRotateSpeed()
 	return speed;
 }
 
+// Sets the players current movement speed speed
+// Returns true on success
 bool Player::SetCurrentMovementSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -729,6 +740,8 @@ bool Player::SetCurrentMovementSpeed(float speed)
 	return true;
 }
 
+// Sets the players walk speed (When / is toggled)
+// Returns true on success
 bool Player::SetWalkSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -743,6 +756,8 @@ bool Player::SetWalkSpeed(float speed)
 	return true;
 }
 
+// Sets the players run speed
+// Returns true on success
 bool Player::SetRunSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -757,6 +772,8 @@ bool Player::SetRunSpeed(float speed)
 	return true;
 }
 
+// Sets the players backward run speed
+// Returns true on success
 bool Player::SetRunBackwardsSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -771,6 +788,8 @@ bool Player::SetRunBackwardsSpeed(float speed)
 	return true;
 }
 
+// Sets the players swim speed
+// Returns true on success
 bool Player::SetSwimSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -785,6 +804,8 @@ bool Player::SetSwimSpeed(float speed)
 	return true;
 }
 
+// Sets the players backwards swim speed
+// Returns true on success
 bool Player::SetSwimBackwardsSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -799,6 +820,8 @@ bool Player::SetSwimBackwardsSpeed(float speed)
 	return true;
 }
 
+// Sets the players fly speed
+// Returns true on success
 bool Player::SetFlySpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -813,6 +836,8 @@ bool Player::SetFlySpeed(float speed)
 	return true;
 }
 
+// Sets the players backwards fly speed
+// Returns true on success
 bool Player::SetFlyBackwardsSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -827,6 +852,8 @@ bool Player::SetFlyBackwardsSpeed(float speed)
 	return true;
 }
 
+// Sets the players yaw rotation speed
+// Returns true on success
 bool Player::SetYawRotateSpeed(float speed)
 {
 	SIZE_T size = 0;
@@ -841,6 +868,8 @@ bool Player::SetYawRotateSpeed(float speed)
 	return true;
 }
 
+// Sets the players pitch rotation speed (Eg: on a flymount)
+// Returns true on success
 bool Player::SetPitchRotateSpeed(float speed)
 {
 	SIZE_T size = 0;
