@@ -563,3 +563,294 @@ bool Player::SetPosO(float newO)
 
 	return true;
 }
+
+
+float Player::GetCurrentMovementSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_CURRENT_MOVEMENT_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetWalkSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_WALK_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetRunSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetRunBackwardsSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetSwimSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetSwimBackwardsSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetFlySpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetFlyBackwardsSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetYawRotateSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_YAW_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+float Player::GetPitchRotateSpeed()
+{
+	SIZE_T size = 0;
+	float speed = 0.0f;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return NULL;
+
+	// Read the speed from the games memory
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_PITCH_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return NULL;
+
+	return speed;
+}
+
+bool Player::SetCurrentMovementSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_CURRENT_MOVEMENT_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetWalkSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_WALK_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetRunSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetRunBackwardsSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetSwimSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetSwimBackwardsSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetFlySpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetFlyBackwardsSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetYawRotateSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_YAW_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+bool Player::SetPitchRotateSpeed(float speed)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Write the new speed to the games memory
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_PITCH_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
