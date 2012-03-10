@@ -260,17 +260,17 @@ void WoWManager::Patch()
 	case FINAL_WOTLK:
 		{
 			SIZE_T size = 0;
-			BYTE speedOfAnimationPatchOrig[5] = { NULL };
-			BYTE speedOfAnimationPatchVerify[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_VERIFY_12340;
-			BYTE speedOfAnimationPatchData[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_PATCH_12340;
+			BYTE speedOfAnimationPatchOrig[6] = { NULL };
+			BYTE speedOfAnimationPatchVerify[6] = ENGINE_SPEED_OF_ANIMATION_PATCH_VERIFY_12340;
+			BYTE speedOfAnimationPatchData[6] = ENGINE_SPEED_OF_ANIMATION_PATCH_PATCH_12340;
 			float speedOfAnimation = 0.0f;
 			float speedOfAnimationNew = 0.0f;
 
 			// Read the code at the address we're about to modify
-			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchOrig, sizeof(BYTE)*5, &size) && size == sizeof(BYTE)*5 )
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchOrig, sizeof(BYTE)*6, &size) && size == sizeof(BYTE)*6 )
 			{
 				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
-				if( memcmp(speedOfAnimationPatchOrig, speedOfAnimationPatchVerify, sizeof(BYTE)*5) == 0 )
+				if( memcmp(speedOfAnimationPatchOrig, speedOfAnimationPatchVerify, sizeof(BYTE)*6) == 0 )
 				{
 					// Read both the new, and old addresses of the speed of animation
 					if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float)) &&
@@ -278,17 +278,32 @@ void WoWManager::Patch()
 					{
 						// Make sure the new address is all 0's, we don't want overwrite something in use..
 						// Then write the old value to the new address before we change the address being accessed
-						if( speedOfAnimationNew == 0.0f &&
-							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float)) )
+						if( speedOfAnimationNew == 0.0f )
 						{
-							// Now we finally change the code to access the new address
-							WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchData, sizeof(BYTE)*5, &size);
+							DWORD oldProtect, oldProtect2;
+							// This code region doesn't have write permissions, so we need to change that before we put our new code in
+							if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), 6, PAGE_EXECUTE_READWRITE, &oldProtect) != 0 &&
+								VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), sizeof(float), PAGE_READWRITE, &oldProtect2) != 0 )
+							{
+								// Write the old value into the new address
+								if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float) )
+								{
+									// Now we finally change the code to access the new address
+									if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchData, sizeof(BYTE)*6, &size) && size == sizeof(BYTE)*6 )
+									{
+										// Restore the old permissions
+										VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), 6, oldProtect, &oldProtect);
+										VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), sizeof(float), oldProtect2, &oldProtect2);
+									}
+								}
+							}
 						}
 					}
 				}
 			}
 		}
 		break;
+
 	case FINAL_TBC:
 		{
 			// We don't have any code edits for TBC yet..
@@ -305,29 +320,31 @@ void WoWManager::Depatch()
 	case FINAL_WOTLK:
 		{
 			SIZE_T size = 0;
-			BYTE speedOfAnimationPatchOrig[5] = { NULL };
-			BYTE speedOfAnimationPatchVerify[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_PATCH_12340;
-			BYTE speedOfAnimationPatchData[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_VERIFY_12340;
-			float speedOfAnimationNew = 0.0f;
+			BYTE speedOfAnimationPatchOrig[6] = { NULL };
+			BYTE speedOfAnimationPatchVerify[6] = ENGINE_SPEED_OF_ANIMATION_PATCH_PATCH_12340;
+			BYTE speedOfAnimationPatchData[6] = ENGINE_SPEED_OF_ANIMATION_PATCH_VERIFY_12340;
+			float speedOfAnimation = 0.0f;
 
 			// Read the code at the address we're about to modify
-			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchOrig, sizeof(BYTE)*5, &size) && size == sizeof(BYTE)*5 )
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchOrig, sizeof(BYTE)*6, &size) && size == sizeof(BYTE)*6 )
 			{
 				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
-				if( memcmp(speedOfAnimationPatchOrig, speedOfAnimationPatchVerify, sizeof(BYTE)*5) == 0 )
+				if( memcmp(speedOfAnimationPatchOrig, speedOfAnimationPatchVerify, sizeof(BYTE)*6) == 0 )
 				{
-					// Read both the new, and old addresses of the speed of animation
-					if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimationNew, sizeof(float), &size) && size == sizeof(float) )
+					DWORD oldProtect, oldProtect2;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), 6, PAGE_EXECUTE_READWRITE, &oldProtect) != 0 &&
+						VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), sizeof(float), PAGE_READWRITE, &oldProtect2) != 0 )
 					{
-						// Make sure the new address isn't all 0's, we we only want to change something if we've patched it
-						// Then write the old value to the new address before we change the address being accessed
-						if( speedOfAnimationNew != 0.0f )
+						// Write the 0s value into the new address
+						if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float) )
 						{
-							speedOfAnimationNew = 0.0f;
-							if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float) )
+							// Now we finally change the code to access the old address again
+							if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchData, sizeof(BYTE)*6, &size) && size == sizeof(BYTE)*6 )
 							{
-								// Now we finally change the code to access the old address
-								WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchData, sizeof(BYTE)*5, &size);
+								// Restore the old permissions
+								VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), 6, oldProtect, &oldProtect);
+								VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), sizeof(float), oldProtect2, &oldProtect2);
 							}
 						}
 					}
