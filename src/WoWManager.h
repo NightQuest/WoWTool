@@ -14,6 +14,8 @@ private:
 	// Basic helper functions
 	void Initialize();
 	void Deinitialize();
+	void Patch();
+	void Depatch();
 
 	// WoW helper functions
 
