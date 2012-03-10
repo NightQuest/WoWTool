@@ -13,6 +13,10 @@ public:
 
 	float GetFieldOfView();
 	bool SetFieldOfView(float newFov);
+	float GetYaw();
+	float GetPitch();
 	float GetRoll();
+	bool SetYaw(float newYaw);
+	bool SetPitch(float newPitch);
 	bool SetRoll(float newRoll);
 };

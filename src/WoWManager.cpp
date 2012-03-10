@@ -232,6 +232,7 @@ void WoWManager::Initialize()
 
 	plr = new Player(hProcess, baseAddress);
 	cam = new Camera(hProcess, baseAddress);
+	Patch();
 }
 
 // delete initializations of classes and other variables inside of private
@@ -246,6 +247,99 @@ void WoWManager::Deinitialize()
 	{
 		delete cam;
 		cam = NULL;
+	}
+	if( hProcess )
+		Depatch();
+}
+
+// Edits the games code so we can do certain things (edit the speed of animations without crashing, for instance)
+void WoWManager::Patch()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+			BYTE speedOfAnimationPatchOrig[5] = { NULL };
+			BYTE speedOfAnimationPatchVerify[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_VERIFY_12340;
+			BYTE speedOfAnimationPatchData[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_PATCH_12340;
+			float speedOfAnimation = 0.0f;
+			float speedOfAnimationNew = 0.0f;
+
+			// Read the code at the address we're about to modify
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchOrig, sizeof(BYTE)*5, &size) && size == sizeof(BYTE)*5 )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(speedOfAnimationPatchOrig, speedOfAnimationPatchVerify, sizeof(BYTE)*5) == 0 )
+				{
+					// Read both the new, and old addresses of the speed of animation
+					if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float)) &&
+						(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimationNew, sizeof(float), &size) && size == sizeof(float)) )
+					{
+						// Make sure the new address is all 0's, we don't want overwrite something in use..
+						// Then write the old value to the new address before we change the address being accessed
+						if( speedOfAnimationNew == 0.0f &&
+							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float)) )
+						{
+							// Now we finally change the code to access the new address
+							WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchData, sizeof(BYTE)*5, &size);
+						}
+					}
+				}
+			}
+		}
+		break;
+	case FINAL_TBC:
+		{
+			// We don't have any code edits for TBC yet..
+		}
+		break;
+	}
+}
+
+// This should only be called when Detaching from the game, it will restore all code edits we've done.
+void WoWManager::Depatch()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+			BYTE speedOfAnimationPatchOrig[5] = { NULL };
+			BYTE speedOfAnimationPatchVerify[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_PATCH_12340;
+			BYTE speedOfAnimationPatchData[5] = ENGINE_SPEED_OF_ANIMATION_PATCH_VERIFY_12340;
+			float speedOfAnimationNew = 0.0f;
+
+			// Read the code at the address we're about to modify
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchOrig, sizeof(BYTE)*5, &size) && size == sizeof(BYTE)*5 )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(speedOfAnimationPatchOrig, speedOfAnimationPatchVerify, sizeof(BYTE)*5) == 0 )
+				{
+					// Read both the new, and old addresses of the speed of animation
+					if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimationNew, sizeof(float), &size) && size == sizeof(float) )
+					{
+						// Make sure the new address isn't all 0's, we we only want to change something if we've patched it
+						// Then write the old value to the new address before we change the address being accessed
+						if( speedOfAnimationNew != 0.0f )
+						{
+							speedOfAnimationNew = 0.0f;
+							if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speedOfAnimation, sizeof(float), &size) && size == sizeof(float) )
+							{
+								// Now we finally change the code to access the old address
+								WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_PATCH_ADDRESS_12340), &speedOfAnimationPatchData, sizeof(BYTE)*5, &size);
+							}
+						}
+					}
+				}
+			}
+		}
+		break;
+
+	case FINAL_TBC:
+		{
+		}
+		break;
 	}
 }
 

@@ -45,8 +45,8 @@ bool Camera::SetFieldOfView(float newFov)
 	// Convert the field of view from degrees to radians
 	if( newFov < 0.1f )
 		newFov = 0.1f;
-	else if( newFov > 180.0f )
-		newFov = 180.0f;
+	while( newFov > 180.0f )
+		newFov -= 180.0f;
 	newFov = newFov * ((float)M_PI/180.0f);
 
 	// Set the new field of view
@@ -54,6 +54,42 @@ bool Camera::SetFieldOfView(float newFov)
 		return false;
 
 	return true;
+}
+
+// Returns the camera yaw in degrees
+float Camera::GetYaw()
+{
+	PBYTE Cam = GetCameraBase();
+	SIZE_T size = 0;
+	float yaw = 0.0f;
+
+	if( !Cam )
+		return 0.0f;
+
+	// Read 104 bytes past the camera base to retrieve the camera yaw.
+	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_YAW_OFFSET_8606), &yaw, sizeof(float), &size) )
+		return 0.0f;
+
+	// Return the result in degrees, not radians
+	return (yaw * (360.0f/(float)(M_PI*2)));
+}
+
+// Returns the camera pitch in degrees
+float Camera::GetPitch()
+{
+	PBYTE Cam = GetCameraBase();
+	SIZE_T size = 0;
+	float pitch = 0.0f;
+
+	if( !Cam )
+		return 0.0f;
+
+	// Read 10C bytes past the camera base to retrieve the camera roll.
+	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_PITCH_OFFSET_8606), &pitch, sizeof(float), &size) )
+		return 0.0f;
+
+	// Return the result in degrees, not radians
+	return (pitch * (360.0f/(float)(M_PI*2)));
 }
 
 // Returns the camera roll in degrees
@@ -74,6 +110,52 @@ float Camera::GetRoll()
 	return (roll * (360.0f/(float)(M_PI*2)));
 }
 
+// Sets the camera yaw (passed float is in degrees)
+// Returns true on success
+bool Camera::SetYaw(float newYaw)
+{
+	PBYTE Cam = GetCameraBase();
+	SIZE_T size = 0;
+
+	if( !Cam )
+		return false;
+
+	while( newYaw > 360.0f )
+		newYaw -= 360.0f;
+
+	// Convert the yaw from degrees to radians
+	newYaw = newYaw * ((float)(M_PI*2)/360.0f);
+
+	// Set the new camera yaw
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_YAW_OFFSET_8606), &newYaw, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+// Sets the camera pitch (passed float is in degrees)
+// Returns true on success
+bool Camera::SetPitch(float newPitch)
+{
+	PBYTE Cam = GetCameraBase();
+	SIZE_T size = 0;
+
+	if( !Cam )
+		return false;
+
+	while( newPitch > 360.0f )
+		newPitch -= 360.0f;
+
+	// Convert the pitch from degrees to radians
+	newPitch = newPitch * ((float)(M_PI*2)/360.0f);
+
+	// Set the new camera pitch
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_PITCH_OFFSET_8606), &newPitch, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
 // Sets the camera roll (passed float is in degrees)
 // Returns true on success
 bool Camera::SetRoll(float newRoll)
@@ -90,7 +172,7 @@ bool Camera::SetRoll(float newRoll)
 	// Convert the roll from degrees to radians
 	newRoll = newRoll * ((float)(M_PI*2)/360.0f);
 
-	// Set the new field of view
+	// Set the new camera roll
 	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_8606), &newRoll, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
