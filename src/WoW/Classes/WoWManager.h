@@ -7,7 +7,9 @@ private:
 	DWORD dwPID;
 	PBYTE baseAddress;
 	UINT gameVersion;
+	TCHAR *gameLocation;
 
+	Engine *eng;
 	Player *plr;
 	Camera *cam;
 
@@ -27,19 +29,11 @@ public:
 	bool Attach(DWORD dwPID);
 	bool IsAttached();
 	bool Launch(TCHAR *path, TCHAR *commandline);
-	TCHAR *GetProgramLocation();
-
-
-	// Engine functions
-	bool SetAnimationSpeed(double speed);
-	bool SetGameSpeed(double speed);
-	DWORD GetRenderingFlags();
-	bool HasRenderingFlags(DWORD flags);
-	bool SetRenderingFlags(DWORD flags);
-	bool RemoveRenderingFlags(DWORD flags);
-
+	TCHAR *GetGameLocation();
+	UINT GetGameVersion();
 
 	// Returns an instance to the Player class that contains Player specific functions
+	Engine *GetEngine() { return eng; }
 	Player *GetPlayer() { return plr; }
 	Camera *GetCamera() { return cam; }
 };

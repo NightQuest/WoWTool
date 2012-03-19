@@ -11,6 +11,8 @@ WoWManager::WoWManager()
 	dwPID = 0;
 	baseAddress = NULL;
 	gameVersion = 0;
+	gameLocation = NULL;
+	eng = NULL;
 	plr = NULL;
 	cam = NULL;
 
@@ -205,18 +207,50 @@ bool WoWManager::IsAttached()
 // Initialize basic classes and other variables inside of private
 void WoWManager::Initialize()
 {
-	TCHAR *gamePath = GetProgramLocation();
-	if( gamePath != NULL )
+	MODULEENTRY32 me32;
+	HANDLE hModuleSnap;
+	TCHAR *ptr = NULL;
+	TCHAR *final = NULL;
+
+	if( hProcess && dwPID )
+	{
+		hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPID);
+		if( hModuleSnap != INVALID_HANDLE_VALUE )
+		{
+			me32.dwSize = sizeof(MODULEENTRY32);
+			if( Module32First(hModuleSnap, &me32) )
+			{
+				do
+				{
+					ptr = _tcsrchr(me32.szExePath, '\\');
+					if( ptr == NULL )
+						ptr = _tcsrchr(me32.szExePath, '/');
+					if( ptr != NULL )
+					{
+						ptr++;
+						if( !_tcscmp(ptr, _T("Wow.exe")) )
+						{
+							gameLocation = _tcsdup(me32.szExePath);
+							break;
+						}
+					}
+				} while( Module32Next(hModuleSnap, &me32) );
+				CloseHandle(hModuleSnap);
+			}
+		}
+	}
+
+	if( gameLocation != NULL )
 	{
 		// Retrieve the lower word of the version (Ex: 2.4.3.8606 would return 8606)
 		DWORD dwDummy, dwLen;
-		dwLen = GetFileVersionInfoSize(gamePath, &dwDummy);
+		dwLen = GetFileVersionInfoSize(gameLocation, &dwDummy);
 		if( dwLen )
 		{
 			BYTE *versionInfo = new BYTE[dwLen];
 			if( versionInfo )
 			{
-				if( GetFileVersionInfo(gamePath, NULL, dwLen, versionInfo) )
+				if( GetFileVersionInfo(gameLocation, NULL, dwLen, versionInfo) )
 				{
 					UINT uLen;
 					VS_FIXEDFILEINFO *ffi;
@@ -226,10 +260,9 @@ void WoWManager::Initialize()
 				delete[] versionInfo;
 			}
 		}
-
-		free(gamePath);
 	}
 
+	eng = new Engine(hProcess, baseAddress);
 	plr = new Player(hProcess, baseAddress);
 	cam = new Camera(hProcess, baseAddress);
 	Patch();
@@ -238,6 +271,11 @@ void WoWManager::Initialize()
 // delete initializations of classes and other variables inside of private
 void WoWManager::Deinitialize()
 {
+	if( eng )
+	{
+		delete eng;
+		eng = NULL;
+	}
 	if( plr )
 	{
 		delete plr;
@@ -249,7 +287,14 @@ void WoWManager::Deinitialize()
 		cam = NULL;
 	}
 	if( hProcess )
+	{
 		Depatch();
+	}
+	if( gameLocation )
+	{
+		free(gameLocation);
+		gameLocation = NULL;
+	}
 }
 
 // Edits the games code so we can do certain things (edit the speed of animations without crashing, for instance)
@@ -471,127 +516,7 @@ bool WoWManager::Launch(TCHAR *path, TCHAR *commandline)
 }
 
 // Returns the location of the attached copy of WoW, NULL on failure
-TCHAR *WoWManager::GetProgramLocation()
-{
-	MODULEENTRY32 me32;
-	HANDLE hModuleSnap;
-	TCHAR *ptr = NULL;
-	TCHAR *final = NULL;
+TCHAR *WoWManager::GetGameLocation() { return gameLocation; }
 
-	if( !hProcess || !dwPID )
-		return NULL;
-
-	hModuleSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, dwPID);
-	if( hModuleSnap == INVALID_HANDLE_VALUE )
-		return NULL;
-
-	me32.dwSize = sizeof(MODULEENTRY32);
-	if( !Module32First(hModuleSnap, &me32) )
-		return NULL;
-
-	do
-	{
-		ptr = _tcsrchr(me32.szExePath, '\\');
-		if( ptr == NULL )
-			ptr = _tcsrchr(me32.szExePath, '/');
-
-		if( ptr != NULL )
-		{
-			ptr++;
-			if( !_tcscmp(ptr, _T("Wow.exe")) )
-			{
-				final = _tcsdup(me32.szExePath);
-				break;
-			}
-		}
-	} while( Module32Next(hModuleSnap, &me32) );
-	CloseHandle(hModuleSnap);
-
-	return final;
-}
-
-// Sets the speed of animations
-// Default: 1000
-// Returns true on success
-bool WoWManager::SetAnimationSpeed(double speed)
-{
-	if( !IsAttached() )
-		return false;
-
-	SIZE_T size;
-	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_8606), &speed, sizeof(double), &size) && size == sizeof(double));
-}
-
-// Sets the game speed of the game (speed of everything from time, animations, etc)
-// Default: 0.00100000004749
-// Returns true on success
-bool WoWManager::SetGameSpeed(double speed)
-{
-	if( !IsAttached() )
-		return false;
-
-	SIZE_T size;
-	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_GAME_SPEED_8606), &speed, sizeof(double), &size) && size == sizeof(double));
-}
-
-// Returns the bitmask that the game uses to decide what and how to render the scene
-// Default: 0x1F104F73
-DWORD WoWManager::GetRenderingFlags()
-{
-	DWORD bitmask = 0;
-	SIZE_T size = 0;
-
-	if( !IsAttached() )
-		return NULL;
-
-	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &bitmask, sizeof(DWORD), &size) || size != sizeof(DWORD) )
-		return NULL;
-
-	return bitmask;
-}
-
-// Checks to see if the passed bitmask exists in the rendering flags bitmask.
-// Returns true on success.
-bool WoWManager::HasRenderingFlags(DWORD flags) { return ((GetRenderingFlags() & flags) == flags); }
-
-// Sets the bitmask that the game uses to decide what and how to render the scene
-// Returns true on success
-bool WoWManager::SetRenderingFlags(DWORD flags)
-{
-	DWORD RenderingFlags = NULL;
-	SIZE_T size = 0;
-
-	if( !IsAttached() )
-		return false;
-
-	// Read the rendering flags and do a bitwise OR on them, adding the passed flags to them
-	RenderingFlags = GetRenderingFlags() | flags;
-
-
-	// Write the new flags back to the rendering flags in memory
-	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
-		return false;
-
-	return true;
-}
-
-
-// Does a bitwise inverse OR on the rendering flags, removing whatever is passed.
-// Returns true on success.
-bool WoWManager::RemoveRenderingFlags(DWORD flags)
-{
-	DWORD RenderingFlags = NULL;
-	SIZE_T size = 0;
-
-	if( !IsAttached() )
-		return false;
-
-	// Read the rendering flags and do a bitwise inverse AND on them, removing the passed flags from them
-	RenderingFlags = GetRenderingFlags() & ~flags;
-
-	// Write the new flags back to the rendering flags in memory
-	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
-		return false;
-
-	return true;
-}
+// Returns the version of the attached copy of WoW, 0 on failure
+UINT WoWManager::GetGameVersion() { return gameVersion; }

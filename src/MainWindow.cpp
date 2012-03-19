@@ -200,7 +200,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 	delete[] tmp;
 
-	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.GetEngine()->HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
 
 	return FALSE;
 }
@@ -320,7 +320,7 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			// Set the render flags to toggle wireframe
 			if( SendMessage(hwndWireframeCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
 			{
-				if( !wm.SetRenderingFlags(RENDER_FLAG_WIREFRAME) )
+				if( !wm.GetEngine()->SetRenderingFlags(RENDER_FLAG_WIREFRAME) )
 				{
 					MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
 					break;
@@ -328,7 +328,7 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			}
 			else
 			{
-				if( !wm.RemoveRenderingFlags(RENDER_FLAG_WIREFRAME) )
+				if( !wm.GetEngine()->RemoveRenderingFlags(RENDER_FLAG_WIREFRAME) )
 				{
 					MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
 					break;

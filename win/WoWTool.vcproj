@@ -202,42 +202,50 @@
 			Name="WoW"
 			>
 			<File
-				RelativePath="..\src\Defines.h"
+				RelativePath="..\src\WoW\Defines.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\Defines_12340.h"
+				RelativePath="..\src\WoW\Defines_12340.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\Defines_8606.h"
+				RelativePath="..\src\WoW\Defines_8606.h"
 				>
 			</File>
 			<Filter
 				Name="Classes"
 				>
 				<File
-					RelativePath="..\src\Camera.cpp"
+					RelativePath="..\src\WoW\Classes\Camera.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\src\Camera.h"
+					RelativePath="..\src\WoW\Classes\Camera.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\Player.cpp"
+					RelativePath="..\src\WoW\Classes\Engine.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\src\Player.h"
+					RelativePath="..\src\WoW\Classes\Engine.h"
 					>
 				</File>
 				<File
-					RelativePath="..\src\WoWManager.cpp"
+					RelativePath="..\src\WoW\Classes\Player.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\src\WoWManager.h"
+					RelativePath="..\src\WoW\Classes\Player.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\WoW\Classes\WoWManager.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\src\WoW\Classes\WoWManager.h"
 					>
 				</File>
 			</Filter>
