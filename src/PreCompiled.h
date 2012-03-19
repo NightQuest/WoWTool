@@ -13,12 +13,15 @@
 #include <math.h>
 
 // WoW stuff
-#include "Defines.h"
-#include "Defines_8606.h"
-#include "Defines_12340.h"
-#include "Camera.h"
-#include "Player.h"
-#include "WoWManager.h"
+#include "WoW\Defines.h"
+#include "WoW\Defines_8606.h"
+#include "WoW\Defines_12340.h"
+
+// WoW Classes
+#include "WoW\Classes\Engine.h"
+#include "WoW\Classes\Camera.h"
+#include "WoW\Classes\Player.h"
+#include "WoW\Classes\WoWManager.h"
 
 // Windows stuff
 #include "resource.h"
