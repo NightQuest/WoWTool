@@ -6,7 +6,15 @@
 bool Engine::SetAnimationSpeed(double speed)
 {
 	SIZE_T size;
-	return (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_8606), &speed, sizeof(double), &size) && size == sizeof(double));
+	DWORD oldProtect;
+	bool ret = false;
+
+	if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_8606), sizeof(double), PAGE_READWRITE, &oldProtect) != 0 )
+	{
+		ret = (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_8606), &speed, sizeof(double), &size) && size == sizeof(double));
+		VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_8606), sizeof(double), oldProtect, &oldProtect);
+	}
+	return ret;
 }
 
 // Sets the game speed of the game (speed of everything from time, animations, etc)

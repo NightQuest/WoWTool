@@ -106,6 +106,14 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		_T("Button"), _T("Wireframe"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
 		140, 95, 70, 23, hwnd, (HMENU)HMENU_RENDER_WIREFRAME_CHECKBOX, NULL, NULL);
 
+	hwndEngineAnimationSpeedStatic = CreateWindowEx(NULL,
+		_T("Static"), _T("Animation Speed"), WS_CHILD | WS_VISIBLE,
+		120, 120, 150, 15, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC, NULL, NULL);
+
+	hwndEngineAnimationSpeedSlider = CreateWindowEx(NULL,
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
+		135, 135, 100, 23, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER, NULL, NULL);
+
 
 	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -116,6 +124,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndCommentatorSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndWireframeCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndEngineAnimationSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
 	// Set the min/max of the Commentator speed slider to 1/100000
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -123,6 +132,12 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndCommentatorSpeedSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)100000l);
     SendMessage(hwndCommentatorSpeedSlider, TBM_SETPAGESIZE, FALSE, 100);
     SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, 1);
+
+	// Set the min/max of the Engine animation speed slider to 1/10000
+	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)10l);
+	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)10000l);
+	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPAGESIZE, FALSE, 100);
+	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPOS, TRUE, 100);
 
 	// Set the min/max of the field of view slider to 0/180
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -198,6 +213,12 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	ZeroMemory(tmp, 30);
 	_stprintf(tmp, _T("Field of view: %.02fº"), pos);
 	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+
+	double pos2 = wm.GetEngine()->GetAnimationSpeed();
+	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos2));
+	ZeroMemory(tmp, 30);
+	_stprintf(tmp, _T("Animation Speed: %.f"), pos2);
+	SendMessage(hwndEngineAnimationSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 	delete[] tmp;
 
 	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.GetEngine()->HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
@@ -387,6 +408,24 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 				ZeroMemory(tmp, 30);
 				_stprintf(tmp, _T("Speed: %.02f"), pos/100.0f);
 				SendMessage(hwndCommentatorSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+				delete[] tmp;
+			}
+			else if( (HWND)lParam == hwndEngineAnimationSpeedSlider )
+			{
+				if( !wm.IsAttached() )
+				{
+					MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+
+				// Set the animation speed of models to the position of the slider and update the txt to match
+				double pos = (double)SendMessage(hwndEngineAnimationSpeedSlider, TBM_GETPOS, 0, 0);
+				if( !wm.GetEngine()->SetAnimationSpeed(pos) )
+					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
+				TCHAR *tmp = new TCHAR[30];
+				ZeroMemory(tmp, 30);
+				_stprintf(tmp, _T("Animation Speed: %.f"), pos);
+				SendMessage(hwndEngineAnimationSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
 			}
 		}
