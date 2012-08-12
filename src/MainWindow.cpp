@@ -15,7 +15,7 @@ LRESULT CALLBACK MainWindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 		return HandleMainWindowShowWindow(hwnd, msg, wParam, lParam);
 		break;
 
-	// Called when the main window recieves a user command (Eg: Right-click)
+	// Called when the main window receives a user command (Eg: Right-click)
 	case WM_COMMAND:
 		return HandleMainWindowCommand(hwnd, msg, wParam, lParam);
 		break;
@@ -226,7 +226,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	return FALSE;
 }
 
-// Function called when the main window recieves a system command (right click of the titlebar for instance)
+// Function called when the main window receives a system command (right click of the titlebar for instance)
 LRESULT CALLBACK HandleMainWindowSysCommand(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch(wParam)
@@ -276,7 +276,7 @@ LRESULT CALLBACK HandleMainWindowSysCommand(HWND hwnd, UINT msg, WPARAM wParam, 
 	return FALSE;
 }
 
-// Function called when the main windows recieves a command
+// Function called when the main windows receives a command
 LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	// LOWORD(wParam) is the target UI element
