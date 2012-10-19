@@ -6,3 +6,4 @@
 /bin
 /win/Debug
 /win/Release
+/win/*.sdf
