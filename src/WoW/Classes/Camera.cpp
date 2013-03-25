@@ -7,9 +7,9 @@ PBYTE Camera::GetCameraBase()
 	SIZE_T size = 0;
 
 	// Retrieve the base address of the camera class from the game's memory.
-	if( !ReadProcessMemory(hProcess, (baseAddress + CAMERA_BASE_PTR_8606), &cam, sizeof(PBYTE), &size) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + CAMERA_BASE_PTR_12340), &cam, sizeof(PBYTE), &size) )
 		return NULL;
-	if( !ReadProcessMemory(hProcess, (cam + CAMERA_CLASS_OFFSET_8606), &cam, sizeof(PBYTE), &size) )
+	if( !ReadProcessMemory(hProcess, (cam + CAMERA_CLASS_OFFSET_12340), &cam, sizeof(PBYTE), &size) )
 		return NULL;
 
 	return cam;
@@ -26,7 +26,7 @@ float Camera::GetFieldOfView()
 		return 0.0f;
 
 	// Read 0x40 bytes past the camera base to retrieve the field of view.
-	ReadProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET_8606), &fov, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET_12340), &fov, sizeof(float), &size);
 
 	// return the result in degrees, not radians.
 	return (fov * (180.0f/(float)M_PI));
@@ -50,7 +50,7 @@ bool Camera::SetFieldOfView(float newFov)
 	newFov = newFov * ((float)M_PI/180.0f);
 
 	// Set the new field of view
-	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET_8606), &newFov, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_FOV_OFFSET_12340), &newFov, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -67,7 +67,7 @@ float Camera::GetYaw()
 		return 0.0f;
 
 	// Read 104 bytes past the camera base to retrieve the camera yaw.
-	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_YAW_OFFSET_8606), &yaw, sizeof(float), &size) )
+	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_YAW_OFFSET_12340), &yaw, sizeof(float), &size) )
 		return 0.0f;
 
 	// Return the result in degrees, not radians
@@ -85,7 +85,7 @@ float Camera::GetPitch()
 		return 0.0f;
 
 	// Read 10C bytes past the camera base to retrieve the camera roll.
-	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_PITCH_OFFSET_8606), &pitch, sizeof(float), &size) )
+	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_PITCH_OFFSET_12340), &pitch, sizeof(float), &size) )
 		return 0.0f;
 
 	// Return the result in degrees, not radians
@@ -103,7 +103,7 @@ float Camera::GetRoll()
 		return 0.0f;
 
 	// Read 10C bytes past the camera base to retrieve the camera roll.
-	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_8606), &roll, sizeof(float), &size) )
+	if( !ReadProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_12340), &roll, sizeof(float), &size) )
 		return 0.0f;
 
 	// Return the result in degrees, not radians
@@ -127,7 +127,7 @@ bool Camera::SetYaw(float newYaw)
 	newYaw = newYaw * ((float)(M_PI*2)/360.0f);
 
 	// Set the new camera yaw
-	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_YAW_OFFSET_8606), &newYaw, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_YAW_OFFSET_12340), &newYaw, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -150,7 +150,7 @@ bool Camera::SetPitch(float newPitch)
 	newPitch = newPitch * ((float)(M_PI*2)/360.0f);
 
 	// Set the new camera pitch
-	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_PITCH_OFFSET_8606), &newPitch, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_PITCH_OFFSET_12340), &newPitch, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -173,7 +173,7 @@ bool Camera::SetRoll(float newRoll)
 	newRoll = newRoll * ((float)(M_PI*2)/360.0f);
 
 	// Set the new camera roll
-	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_8606), &newRoll, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (Cam + CAMERA_ROLL_OFFSET_12340), &newRoll, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;

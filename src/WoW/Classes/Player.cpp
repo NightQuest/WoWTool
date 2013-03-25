@@ -7,7 +7,11 @@ PBYTE Player::GetPlayerBase()
 	SIZE_T size = 0;
 
 	// Retrieve the base address of the player class from the game's memory.
-	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_BASE_PTR_8606), &plr, sizeof(PBYTE), &size) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + PLAYER_BASE_PTR_12340), &plr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+		return NULL;
+	if( !ReadProcessMemory(hProcess, (plr + PLAYER_BASE_PTR_1_12340), &plr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+		return NULL;
+	if( !ReadProcessMemory(hProcess, (plr + PLAYER_BASE_PTR_2_12340), &plr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
 		return NULL;
 
 	return plr;
@@ -24,12 +28,12 @@ PBYTE Player::GetPlayerFlagsBase()
 	SIZE_T size = 0;
 
 	// Read the Player Flags pointer
-	// The pointer to the player flags is located 0x1190 bytes from the player base
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FIELDS_OFFSET_8606), &FlagsPtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+	// The pointer to the player flags is located 0x1008 bytes from the player base
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_FIELDS_OFFSET_12340), &FlagsPtr, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
 		return NULL;
 
 	// Return 8 bytes past the base to be able to retrieve the player flags bitmask
-	return (FlagsPtr ? (FlagsPtr  + PLAYER_FIELDS_FLAGS_8606) : NULL);
+	return (FlagsPtr ? (FlagsPtr  + PLAYER_FIELDS_FLAGS_12340) : NULL);
 }
 
 // Returns the base address of the player movement info in memory - INTERNAL
@@ -43,7 +47,7 @@ PBYTE Player::GetPlayerMovementInfoBase()
 	SIZE_T size = 0;
 
 	// Read the Player MovementInfo pointer
-	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_MOVEMENT_INFO_OFFSET_8606), &MovementInfo, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
+	if( !ReadProcessMemory(hProcess, (Plr + PLAYER_MOVEMENT_INFO_OFFSET_12340), &MovementInfo, sizeof(PBYTE), &size) || size != sizeof(PBYTE) )
 		return NULL;
 
 	return MovementInfo;
@@ -195,7 +199,7 @@ float Player::GetCommentatorCameraYaw()
 	float yaw = 0.0f;
 
 	// Read the Commentator's Camera's Yaw
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_YAW_8606), &yaw, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_YAW_12340), &yaw, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	// Return the result in degrees, not radians
@@ -215,7 +219,7 @@ bool Player::SetCommentatorCameraYaw(float newYaw)
 	newYaw *= ((float)(M_PI*2)/360.0f);
 
 	// Set the new yaw
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_YAW_8606), &newYaw, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_YAW_12340), &newYaw, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -227,7 +231,7 @@ float Player::GetCommentatorCameraPitch()
 	SIZE_T size;
 	float pitch = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_PITCH_8606), &pitch, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_PITCH_12340), &pitch, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	// Pitch is stored from negative PI/2 to positive PI/2, so we add PI/2 before converting to degrees
@@ -248,7 +252,7 @@ bool Player::SetCommentatorCameraPitch(float newPitch)
 	newPitch = (newPitch * ((float)M_PI/180.0f)) + ((float)M_PI/2);
 
 	// Write the new pitch to memory
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_PITCH_8606), &newPitch, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_PITCH_12340), &newPitch, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -260,7 +264,7 @@ float Player::GetCommentatorCameraPosX()
 	SIZE_T size;
 	float X = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_X_8606), &X, sizeof(float), &size) || size != sizeof(float))
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_X_12340), &X, sizeof(float), &size) || size != sizeof(float))
 		return 0.0f;
 
 	return X;
@@ -272,7 +276,7 @@ bool Player::SetCommentatorCameraPosX(float X)
 {
 	SIZE_T size = 0;
 
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_X_8606), &X, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_X_12340), &X, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -284,7 +288,7 @@ float Player::GetCommentatorCameraPosY()
 	SIZE_T size;
 	float Y = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Y_8606), &Y, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Y_12340), &Y, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	return Y;
@@ -296,7 +300,7 @@ bool Player::SetCommentatorCameraPosY(float Y)
 {
 	SIZE_T size = 0;
 
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Y_8606), &Y, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Y_12340), &Y, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -308,7 +312,7 @@ float Player::GetCommentatorCameraPosZ()
 	SIZE_T size;
 	float Z = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Z_8606), &Z, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Z_12340), &Z, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	return Z;
@@ -320,7 +324,7 @@ bool Player::SetCommentatorCameraPosZ(float Z)
 {
 	SIZE_T size = 0;
 
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Z_8606), &Z, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_POSITION_Z_12340), &Z, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -360,7 +364,7 @@ bool Player::SetCommentatorCameraPosition(Vec3 pos)
 bool Player::SetCommentatorCameraSpeed(float speed)
 {
 	SIZE_T size = 0;
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_SPEED_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 	return true;
 }
@@ -371,7 +375,7 @@ float Player::GetCommentatorCameraSpeed()
 	SIZE_T size;
 	float speed = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_SPEED_8606), &speed, sizeof(float), &size) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_SPEED_12340), &speed, sizeof(float), &size) )
 		return 0.0f;
 
 	return speed;
@@ -382,7 +386,7 @@ float Player::GetCommentatorCameraSpeed()
 bool Player::SetCommentatorCameraCollision(bool bEnable)
 {
 	SIZE_T size = 0;
-	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_COLLISION_8606), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + COMMENTATOR_COLLISION_12340), &bEnable, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 	return true;
 }
@@ -393,7 +397,7 @@ bool Player::IsCommentatorCameraCollidable()
 	SIZE_T size;
 	bool bCollision = false;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_COLLISION_8606), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + COMMENTATOR_COLLISION_12340), &bCollision, sizeof(bool), &size) || size != sizeof(bool) )
 		return false;
 
 	return bCollision;
@@ -423,7 +427,7 @@ float Player::GetPosX()
 	SIZE_T size = 0;
 
 	// Read the current position of the players X coordinate
-	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_X_OFFSET_8606), &pX, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_X_OFFSET_12340), &pX, sizeof(float), &size);
 
 	return pX;
 }
@@ -439,7 +443,7 @@ float Player::GetPosY()
 	SIZE_T size = 0;
 
 	// Read the current position of the players Y coordinate
-	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Y_OFFSET_8606), &pY, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Y_OFFSET_12340), &pY, sizeof(float), &size);
 
 	return pY;
 }
@@ -455,7 +459,7 @@ float Player::GetPosZ()
 	SIZE_T size = 0;
 
 	// Read the current position of the players Z coordinate
-	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Z_OFFSET_8606), &pZ, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Z_OFFSET_12340), &pZ, sizeof(float), &size);
 
 	return pZ;
 }
@@ -471,7 +475,7 @@ float Player::GetPosO()
 	SIZE_T size = 0;
 
 	// Read the current position of the players orientation
-	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_8606), &pO, sizeof(float), &size);
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_12340), &pO, sizeof(float), &size);
 
 	return pO;
 }
@@ -510,7 +514,7 @@ bool Player::SetPosX(float newX)
 		return false;
 
 	// Set the current position of the players X coordinate
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_X_OFFSET_8606), &newX, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_X_OFFSET_12340), &newX, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -526,7 +530,7 @@ bool Player::SetPosY(float newY)
 		return false;
 
 	// Set the current position of the players Y coordinate
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Y_OFFSET_8606), &newY, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Y_OFFSET_12340), &newY, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -542,7 +546,7 @@ bool Player::SetPosZ(float newZ)
 		return false;
 
 	// Set the current position of the players Z coordinate
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Z_OFFSET_8606), &newZ, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_Z_OFFSET_12340), &newZ, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -558,7 +562,7 @@ bool Player::SetPosO(float newO)
 		return false;
 
 	// Set the current position of the players orientation
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_8606), &newO, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_12340), &newO, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -574,7 +578,7 @@ float Player::GetCurrentMovementSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_CURRENT_MOVEMENT_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_CURRENT_MOVEMENT_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -590,7 +594,7 @@ float Player::GetWalkSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_WALK_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_WALK_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -606,7 +610,7 @@ float Player::GetRunSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -622,7 +626,7 @@ float Player::GetRunBackwardsSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_BACKWARDS_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -638,7 +642,7 @@ float Player::GetSwimSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -654,7 +658,7 @@ float Player::GetSwimBackwardsSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_BACKWARDS_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -670,7 +674,7 @@ float Player::GetFlySpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -686,7 +690,7 @@ float Player::GetFlyBackwardsSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_BACKWARDS_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -702,7 +706,7 @@ float Player::GetYawRotateSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_YAW_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_YAW_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -718,7 +722,7 @@ float Player::GetPitchRotateSpeed()
 		return NULL;
 
 	// Read the speed from the games memory
-	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_PITCH_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !ReadProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_PITCH_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return NULL;
 
 	return speed;
@@ -734,7 +738,7 @@ bool Player::SetCurrentMovementSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_CURRENT_MOVEMENT_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_CURRENT_MOVEMENT_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -750,7 +754,7 @@ bool Player::SetWalkSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_WALK_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_WALK_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -766,7 +770,7 @@ bool Player::SetRunSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -782,7 +786,7 @@ bool Player::SetRunBackwardsSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_RUN_BACKWARDS_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -798,7 +802,7 @@ bool Player::SetSwimSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -814,7 +818,7 @@ bool Player::SetSwimBackwardsSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_SWIM_BACKWARDS_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -830,7 +834,7 @@ bool Player::SetFlySpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -846,7 +850,7 @@ bool Player::SetFlyBackwardsSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_BACKWARDS_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_FLY_BACKWARDS_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -862,7 +866,7 @@ bool Player::SetYawRotateSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_YAW_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_YAW_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
@@ -878,7 +882,7 @@ bool Player::SetPitchRotateSpeed(float speed)
 		return false;
 
 	// Write the new speed to the games memory
-	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_PITCH_SPEED_OFFSET_8606), &speed, sizeof(float), &size) || size != sizeof(float) )
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_ROTATE_PITCH_SPEED_OFFSET_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;

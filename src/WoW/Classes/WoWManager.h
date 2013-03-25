@@ -32,6 +32,11 @@ public:
 	TCHAR *GetGameLocation();
 	UINT GetGameVersion();
 
+	// Basic helper functions
+	bool HasPatchedSkyPosition();
+	bool PatchSkyPosition();
+	bool DepatchSkyPosition();
+
 	// Returns an instance to the Player class that contains Player specific functions
 	Engine *GetEngine() { return eng; }
 	Player *GetPlayer() { return plr; }

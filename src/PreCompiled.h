@@ -45,11 +45,13 @@ enum WindowIDs
 	HMENU_RENDER_WIREFRAME_CHECKBOX,
 	HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC,
 	HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER,
+	HMENU_ENGINE_SKY_POSITION_SLIDER,
+	HMENU_ENGINE_SKY_POSITION_CHECKBOX,
 };
 
 // Global static variables
 static HWND		hwndMain, hwndCommentatorModeGroupBox, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox,
 				hwndTeleportForwardButton,	hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic,
 				hwndCommentatorSpeedSlider,	hwndWireframeCheckbox, hwndEngineAnimationSpeedStatic,
-				hwndEngineAnimationSpeedSlider;
+				hwndEngineAnimationSpeedSlider, hwndEngineSkyPositionCheckbox, hwndEngineSkyPositionSlider;
 static WoWManager	wm;

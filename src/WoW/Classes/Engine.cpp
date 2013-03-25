@@ -3,16 +3,16 @@
 // Sets the speed of animations
 // Default: 1000
 // Returns true on success
-bool Engine::SetAnimationSpeed(double speed)
+bool Engine::SetAnimationSpeed(float speed)
 {
 	SIZE_T size;
 	DWORD oldProtect;
 	bool ret = false;
 
-	if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_8606), sizeof(double), PAGE_READWRITE, &oldProtect) != 0 )
+	if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), sizeof(float), PAGE_READWRITE, &oldProtect) != 0 )
 	{
-		ret = (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_8606), &speed, sizeof(double), &size) && size == sizeof(double));
-		VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_8606), sizeof(double), oldProtect, &oldProtect);
+		ret = (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speed, sizeof(float), &size) && size == sizeof(float));
+		VirtualProtectEx(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), sizeof(float), oldProtect, &oldProtect);
 	}
 	return ret;
 }
@@ -28,12 +28,12 @@ bool Engine::SetGameSpeed(double speed)
 
 // Returns the speed of animations
 // Default: 1000
-double Engine::GetAnimationSpeed()
+float Engine::GetAnimationSpeed()
 {
 	SIZE_T size = 0;
-	double speed = 0.0f;
+	float speed = 0.0f;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_8606), &speed, sizeof(double), &size) || size != sizeof(double) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_SPEED_OF_ANIMATION_NEW_12340), &speed, sizeof(float), &size) || size != sizeof(float) )
 		return 0.0f;
 
 	return speed;
@@ -59,7 +59,7 @@ DWORD Engine::GetRenderingFlags()
 	DWORD bitmask = 0;
 	SIZE_T size = 0;
 
-	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &bitmask, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_12340), &bitmask, sizeof(DWORD), &size) || size != sizeof(DWORD) )
 		return NULL;
 
 	return bitmask;
@@ -80,7 +80,7 @@ bool Engine::SetRenderingFlags(DWORD flags)
 	RenderingFlags = GetRenderingFlags() | flags;
 
 	// Write the new flags back to the rendering flags in memory
-	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_12340), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
 		return false;
 
 	return true;
@@ -98,7 +98,32 @@ bool Engine::RemoveRenderingFlags(DWORD flags)
 	RenderingFlags = GetRenderingFlags() & ~flags;
 
 	// Write the new flags back to the rendering flags in memory
-	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_8606), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_RENDERING_FLAGS_12340), &RenderingFlags, sizeof(DWORD), &size) || size != sizeof(DWORD) )
+		return false;
+
+	return true;
+}
+
+// Returns the current rotation of the sky.
+float Engine::GetSkyPosition()
+{
+	float position = 0.0f;
+	SIZE_T size = 0;
+
+	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_12340), &position, sizeof(float), &size) || size != sizeof(float) )
+		return 0.0f;
+
+	return position;
+}
+
+// Sets the current rotation of the sky.
+// Returns true on success
+bool Engine::SetSkyPosition(float position)
+{
+	SIZE_T size = 0;
+
+	// Write the new position into memory
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_12340), &position, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;

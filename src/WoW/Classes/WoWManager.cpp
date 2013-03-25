@@ -520,3 +520,109 @@ TCHAR *WoWManager::GetGameLocation() { return gameLocation; }
 
 // Returns the version of the attached copy of WoW, 0 on failure
 UINT WoWManager::GetGameVersion() { return gameVersion; }
+
+// Checks whether or not the sky position has been patched.
+// Returns: true if it's been patched
+bool WoWManager::HasPatchedSkyPosition()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+			SIZE_T sizeofEdit = 5;
+			BYTE skyPositionPatchOrig[5] = { NULL };
+			BYTE skyPositionPatchVerify[5] = ENGINE_SKY_POSITION_PATCH_VERIFY_12340;
+			
+			// Read the code at the address we're about to check
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionPatchOrig, sizeof(BYTE)*sizeofEdit, &size) && size == sizeof(BYTE)*sizeofEdit )
+			{
+				// If the code matches what we know, it's not been patched.
+				return (memcmp(skyPositionPatchOrig, skyPositionPatchVerify, sizeof(BYTE)*sizeofEdit) != 0);
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Edits the games code to stop the sky position from being updated every few minutes.
+bool WoWManager::PatchSkyPosition()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+			SIZE_T sizeofEdit = 5;
+			BYTE skyPositionPatchOrig[5] = { NULL };
+			BYTE skyPositionPatchVerify[5] = ENGINE_SKY_POSITION_PATCH_VERIFY_12340;
+			BYTE skyPositionPatchData[5] = ENGINE_SKY_POSITION_PATCH_PATCH_12340;
+
+			// Read the code at the address we're about to modify
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionPatchOrig, sizeof(BYTE)*sizeofEdit, &size) && size == sizeof(BYTE)*sizeofEdit )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(skyPositionPatchOrig, skyPositionPatchVerify, sizeof(BYTE)*sizeofEdit) == 0 )
+				{
+					DWORD oldProtect;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeofEdit, PAGE_EXECUTE_READWRITE, &oldProtect) != 0 )
+					{
+						// Now we change the code to never update the sky
+						if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionPatchData, sizeof(BYTE)*sizeofEdit, &size) && size == sizeof(BYTE)*sizeofEdit )
+						{
+							// Restore the old permissions
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeofEdit, oldProtect, &oldProtect);
+							return true;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Edits the games code to allow the sky position to be updated every few minutes again.
+bool WoWManager::DepatchSkyPosition()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+			SIZE_T sizeofEdit = 5;
+			BYTE skyPositionPatchOrig[5] = { NULL };
+			BYTE skyPositionPatchVerify[5] = ENGINE_SKY_POSITION_PATCH_PATCH_12340;
+			BYTE skyPositionPatchData[5] = ENGINE_SKY_POSITION_PATCH_VERIFY_12340;
+
+			// Read the code at the address we're about to modify
+			if( ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionPatchOrig, sizeof(BYTE)*sizeofEdit, &size) && size == sizeof(BYTE)*sizeofEdit )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(skyPositionPatchOrig, skyPositionPatchVerify, sizeof(BYTE)*sizeofEdit) == 0 )
+				{
+					DWORD oldProtect;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeofEdit, PAGE_EXECUTE_READWRITE, &oldProtect) != 0 )
+					{
+						// Now we change the code to update the sky again
+						if( WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionPatchData, sizeof(BYTE)*sizeofEdit, &size) && size == sizeof(BYTE)*sizeofEdit )
+						{
+							// Restore the old permissions
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeofEdit, oldProtect, &oldProtect);
+							return true;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	return false;
+}

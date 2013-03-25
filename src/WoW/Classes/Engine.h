@@ -15,9 +15,12 @@ public:
 	bool SetRenderingFlags(DWORD flags);
 	bool RemoveRenderingFlags(DWORD flags);
 
-	bool SetAnimationSpeed(double speed);
+	float GetSkyPosition();
+	bool SetSkyPosition(float position);
+
+	bool SetAnimationSpeed(float speed);
 	bool SetGameSpeed(double speed);
-	double GetAnimationSpeed();
+	float GetAnimationSpeed();
 	double GetGameSpeed();
 
 };

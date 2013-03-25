@@ -114,6 +114,14 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
 		135, 135, 100, 23, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER, NULL, NULL);
 
+	hwndEngineSkyPositionCheckbox = CreateWindowEx(NULL,
+		_T("Button"), _T("Sky position"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		15, 110, 100, 15, hwnd, (HMENU)HMENU_ENGINE_SKY_POSITION_CHECKBOX, NULL, NULL);
+
+	hwndEngineSkyPositionSlider = CreateWindowEx(NULL,
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
+		7, 125, 100, 23, hwnd, (HMENU)HMENU_ENGINE_SKY_POSITION_SLIDER, NULL, NULL);
+
 
 	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -125,6 +133,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndCameraFOVStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndWireframeCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndEngineAnimationSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndEngineSkyPositionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
 	// Set the min/max of the Commentator speed slider to 1/100000
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -138,6 +147,12 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)10000l);
 	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPAGESIZE, FALSE, 100);
 	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPOS, TRUE, 100);
+
+	// Set the min/max of the Engine sky position speed slider to 0/1444
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)0l);
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)1444l);
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPAGESIZE, FALSE, 100);
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPOS, TRUE, 0);
 
 	// Set the min/max of the field of view slider to 0/180
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -201,6 +216,9 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	// Read the game's memory, and fill in the values for it
 	SendMessage(hwndCommentatorCheckbox, BM_SETCHECK, (WPARAM)(wm.GetPlayer()->IsInCommentatorMode() ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm.GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.GetEngine()->HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndEngineSkyPositionCheckbox, BM_SETCHECK, (WPARAM)(wm.HasPatchedSkyPosition() ? BST_CHECKED : BST_UNCHECKED), NULL);
+
 	float pos = wm.GetPlayer()->GetCommentatorCameraSpeed();
 	SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos*100.0f));
 	TCHAR *tmp = new TCHAR[30];
@@ -214,14 +232,20 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	_stprintf(tmp, _T("Field of view: %.02fº"), pos);
 	SendMessage(hwndCameraFOVStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
 
-	double pos2 = wm.GetEngine()->GetAnimationSpeed();
+	float pos2 = wm.GetEngine()->GetAnimationSpeed();
 	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos2));
 	ZeroMemory(tmp, 30);
 	_stprintf(tmp, _T("Animation Speed: %.f"), pos2);
 	SendMessage(hwndEngineAnimationSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
-	delete[] tmp;
 
-	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.GetEngine()->HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
+	float pos3 = wm.GetEngine()->GetSkyPosition();
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos3));
+	ZeroMemory(tmp, 30);
+	_stprintf(tmp, _T("Sky Position: %.f"), pos3);
+	SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
+	delete[] tmp;
+	if( !wm.HasPatchedSkyPosition() )
+		EnableWindow(hwndEngineSkyPositionSlider, FALSE);
 
 	return FALSE;
 }
@@ -357,6 +381,36 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			}
 		}
 		break;
+
+	case HMENU_ENGINE_SKY_POSITION_CHECKBOX:
+		{
+			if( !wm.IsAttached() )
+			{
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
+
+			// Patch the sky position code
+			if( SendMessage(hwndEngineSkyPositionCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
+			{
+				if( !wm.PatchSkyPosition() )
+				{
+					MessageBox(NULL, _T("Failed to enable sky position"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+				EnableWindow(hwndEngineSkyPositionSlider, TRUE);
+			}
+			else
+			{
+				if( !wm.DepatchSkyPosition() )
+				{
+					MessageBox(NULL, _T("Failed to disable sky position"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+				EnableWindow(hwndEngineSkyPositionSlider, FALSE);
+			}
+		}
+		break;
 	}
 	return FALSE;
 }
@@ -419,13 +473,31 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 				}
 
 				// Set the animation speed of models to the position of the slider and update the txt to match
-				double pos = (double)SendMessage(hwndEngineAnimationSpeedSlider, TBM_GETPOS, 0, 0);
+				float pos = (float)SendMessage(hwndEngineAnimationSpeedSlider, TBM_GETPOS, 0, 0);
 				if( !wm.GetEngine()->SetAnimationSpeed(pos) )
 					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
 				TCHAR *tmp = new TCHAR[30];
 				ZeroMemory(tmp, 30);
 				_stprintf(tmp, _T("Animation Speed: %.f"), pos);
 				SendMessage(hwndEngineAnimationSpeedStatic, WM_SETTEXT, NULL, (LPARAM)tmp);
+				delete[] tmp;
+			}
+			else if( (HWND)lParam == hwndEngineSkyPositionSlider )
+			{
+				if( !wm.IsAttached() )
+				{
+					MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+
+				// Set the sky position to the position of the slider and update the txt to match
+				float pos = (float)SendMessage(hwndEngineSkyPositionSlider, TBM_GETPOS, 0, 0);
+				if( !wm.GetEngine()->SetSkyPosition(pos) )
+					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
+				TCHAR *tmp = new TCHAR[30];
+				ZeroMemory(tmp, 30);
+				_stprintf(tmp, _T("Sky position: %.f"), pos);
+				SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
 			}
 		}
@@ -441,7 +513,7 @@ LRESULT CALLBACK HandleMainWindowInitMenuPopup(HWND hwnd, UINT msg, WPARAM wPara
 	if( (HMENU)wParam == hMenu )
 	{
 		RemoveMenu(hMenu, HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG, MF_BYCOMMAND);
-		if( (GetKeyState(VK_CONTROL) & 0x8000) ) // 0x8000 is a high-order bit of 1 I guess.. O_o
+		if( (GetKeyState(VK_CONTROL) & 0x8000) ) // 0x8000 is 1000000000000000 in binary, which is the high-order bit of 1 - signifying that Ctrl is pressed
 		{
 			AppendMenu(hMenu, MF_STRING, HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG, _T("Do a barrel roll!"));
 		}
