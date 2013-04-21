@@ -1,9 +1,10 @@
 
+/bin
 /src/res/*.aps
 /win/*.ncb
 /win/*.suo
 /win/*.user
-/bin
+/win/*.sdf
 /win/Debug
 /win/Release
-/win/*.sdf
+/win/ipch
