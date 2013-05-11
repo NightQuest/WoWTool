@@ -370,12 +370,24 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
 					break;
 				}
+				
+				if( !wm.GetEngine()->DrawSky(false) )
+				{
+					MessageBox(NULL, _T("Failed to toggle drawSky"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
 			}
 			else
 			{
 				if( !wm.GetEngine()->RemoveRenderingFlags(RENDER_FLAG_WIREFRAME) )
 				{
 					MessageBox(NULL, _T("Failed to toggle wireframe"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+
+				if( !wm.GetEngine()->DrawSky(true) )
+				{
+					MessageBox(NULL, _T("Failed to toggle drawSky"), _T("Error!"), MB_ICONERROR|MB_OK);
 					break;
 				}
 			}

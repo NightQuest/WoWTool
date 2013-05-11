@@ -128,3 +128,15 @@ bool Engine::SetSkyPosition(float position)
 
 	return true;
 }
+
+bool Engine::DrawSky(bool bDrawSky)
+{
+	SIZE_T size = 0;
+	BYTE drawSky = bDrawSky ? 1 : 0;
+
+	// Write whether or not to draw the sky into memory
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_DRAW_SKY), &drawSky, sizeof(BYTE), &size) || size != sizeof(BYTE) )
+		return false;
+
+	return true;
+}

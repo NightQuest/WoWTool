@@ -17,6 +17,7 @@ public:
 
 	float GetSkyPosition();
 	bool SetSkyPosition(float position);
+	bool DrawSky(bool bDrawSky);
 
 	bool SetAnimationSpeed(float speed);
 	bool SetGameSpeed(double speed);
