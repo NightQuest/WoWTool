@@ -108,15 +108,15 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	hwndEngineAnimationSpeedStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Animation Speed"), WS_CHILD | WS_VISIBLE,
-		120, 120, 150, 15, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC, NULL, NULL);
+		130, 120, 150, 15, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC, NULL, NULL);
 
 	hwndEngineAnimationSpeedSlider = CreateWindowEx(NULL,
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
 		135, 135, 100, 23, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER, NULL, NULL);
 
 	hwndEngineSkyPositionCheckbox = CreateWindowEx(NULL,
-		_T("Button"), _T("Sky position"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		15, 110, 100, 15, hwnd, (HMENU)HMENU_ENGINE_SKY_POSITION_CHECKBOX, NULL, NULL);
+		_T("Button"), _T("Sky Position"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		15, 110, 110, 15, hwnd, (HMENU)HMENU_ENGINE_SKY_POSITION_CHECKBOX, NULL, NULL);
 
 	hwndEngineSkyPositionSlider = CreateWindowEx(NULL,
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
@@ -508,7 +508,7 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
 				TCHAR *tmp = new TCHAR[30];
 				ZeroMemory(tmp, 30);
-				_stprintf(tmp, _T("Sky position: %.f"), pos);
+				_stprintf(tmp, _T("Sky Position: %.f"), pos);
 				SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
 			}
