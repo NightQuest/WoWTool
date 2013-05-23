@@ -540,14 +540,20 @@ bool WoWManager::HasPatchedSkyPosition()
 			BYTE skyPositionSecondPatchOrig[3] = { NULL };
 			BYTE skyPositionSecondPatchVerify[3] = ENGINE_SKY_POSITION_PATCH_2_VERIFY_12340;
 
+			SIZE_T sizeOfThirdPatch = 3;
+			BYTE skyPositionThirdPatchOrig[3] = { NULL };
+			BYTE skyPositionThirdPatchVerify[3] = ENGINE_SKY_POSITION_PATCH_3_VERIFY_12340;
+
 			
 			// Read the code at the address we're about to check
 			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionFirstPatchOrig, sizeof(BYTE)*sizeOfFirstPatch, &size) && size == sizeof(BYTE)*sizeOfFirstPatch) &&
-				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchOrig, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) )
+				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchOrig, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) &&
+				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), &skyPositionThirdPatchOrig, sizeof(BYTE)*sizeOfThirdPatch, &size) && size == sizeof(BYTE)*sizeOfThirdPatch) )
 			{
 				// If the code matches what we know, it's not been patched.
-				return ((memcmp(skyPositionFirstPatchOrig, skyPositionFirstPatchVerify, sizeof(BYTE)*sizeOfFirstPatch) != 0) &&
-					memcmp(skyPositionSecondPatchOrig, skyPositionSecondPatchVerify, sizeof(BYTE)*sizeOfSecondPatch) != 0);
+				return (memcmp(skyPositionFirstPatchOrig, skyPositionFirstPatchVerify, sizeof(BYTE)*sizeOfFirstPatch) != 0) &&
+					(memcmp(skyPositionSecondPatchOrig, skyPositionSecondPatchVerify, sizeof(BYTE)*sizeOfSecondPatch) != 0) &&
+					(memcmp(skyPositionThirdPatchOrig, skyPositionThirdPatchVerify, sizeof(BYTE)*sizeOfThirdPatch) != 0);
 			}
 		}
 		break;
@@ -575,27 +581,37 @@ bool WoWManager::PatchSkyPosition()
 			BYTE skyPositionSecondPatchVerify[3] = ENGINE_SKY_POSITION_PATCH_2_VERIFY_12340;
 			BYTE skyPositionSecondPatchData[3] = ENGINE_SKY_POSITION_PATCH_2_PATCH_12340;
 
+			SIZE_T sizeOfThirdPatch = 3;
+			BYTE skyPositionThirdPatchOrig[3] = { NULL };
+			BYTE skyPositionThirdPatchVerify[3] = ENGINE_SKY_POSITION_PATCH_3_VERIFY_12340;
+			BYTE skyPositionThirdPatchData[3] = ENGINE_SKY_POSITION_PATCH_3_PATCH_12340;
+
 
 			// Read the code at the address we're about to modify
 			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionFirstPatchOrig, sizeof(BYTE)*sizeOfFirstPatch, &size) && size == sizeof(BYTE)*sizeOfFirstPatch) &&
-				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchOrig, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) )
+				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchOrig, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) &&
+				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), &skyPositionThirdPatchOrig, sizeof(BYTE)*sizeOfThirdPatch, &size) && size == sizeof(BYTE)*sizeOfThirdPatch) )
 			{
 				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
 				if( (memcmp(skyPositionFirstPatchOrig, skyPositionFirstPatchVerify, sizeof(BYTE)*sizeOfFirstPatch) == 0) &&
-					(memcmp(skyPositionSecondPatchOrig, skyPositionSecondPatchVerify, sizeof(BYTE)*sizeOfSecondPatch) == 0) )
+					(memcmp(skyPositionSecondPatchOrig, skyPositionSecondPatchVerify, sizeof(BYTE)*sizeOfSecondPatch) == 0) &&
+					(memcmp(skyPositionThirdPatchOrig, skyPositionThirdPatchVerify, sizeof(BYTE)*sizeOfThirdPatch) == 0) )
 				{
-					DWORD oldProtectFirst, oldProtectSecond;
+					DWORD oldProtectFirst, oldProtectSecond, oldProtectThird;
 					// This code region doesn't have write permissions, so we need to change that before we put our new code in
 					if( (VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeOfFirstPatch, PAGE_EXECUTE_READWRITE, &oldProtectFirst) != 0) &&
-						(VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, PAGE_EXECUTE_READWRITE, &oldProtectSecond) != 0) )
+						(VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, PAGE_EXECUTE_READWRITE, &oldProtectSecond) != 0) &&
+						(VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), sizeOfThirdPatch, PAGE_EXECUTE_READWRITE, &oldProtectThird) != 0) )
 					{
 						// Now we change the code to never update the sky
 						if( (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionFirstPatchData, sizeof(BYTE)*sizeOfFirstPatch, &size) && size == sizeof(BYTE)*sizeOfFirstPatch) &&
-							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchData, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) )
+							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchData, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) &&
+							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), &skyPositionThirdPatchData, sizeof(BYTE)*sizeOfThirdPatch, &size) && size == sizeof(BYTE)*sizeOfThirdPatch) )
 						{
 							// Restore the old permissions
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeOfFirstPatch, oldProtectFirst, &oldProtectFirst);
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, oldProtectSecond, &oldProtectSecond);
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), sizeOfThirdPatch, oldProtectThird, &oldProtectThird);
 							return true;
 						}
 					}
@@ -627,27 +643,38 @@ bool WoWManager::DepatchSkyPosition()
 			BYTE skyPositionSecondPatchVerify[3] = ENGINE_SKY_POSITION_PATCH_2_PATCH_12340;
 			BYTE skyPositionSecondPatchData[3] = ENGINE_SKY_POSITION_PATCH_2_VERIFY_12340;
 
+			SIZE_T sizeOfThirdPatch = 3;
+			BYTE skyPositionThirdPatchOrig[3] = { NULL };
+			BYTE skyPositionThirdPatchVerify[3] = ENGINE_SKY_POSITION_PATCH_3_PATCH_12340;
+			BYTE skyPositionThirdPatchData[3] = ENGINE_SKY_POSITION_PATCH_3_VERIFY_12340;
+
+
 
 			// Read the code at the address we're about to modify
 			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionFirstPatchOrig, sizeof(BYTE)*sizeOfFirstPatch, &size) && size == sizeof(BYTE)*sizeOfFirstPatch) &&
-				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchOrig, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) )
+				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchOrig, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) &&
+				(ReadProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), &skyPositionThirdPatchOrig, sizeof(BYTE)*sizeOfThirdPatch, &size) && size == sizeof(BYTE)*sizeOfThirdPatch) )
 			{
 				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
 				if( (memcmp(skyPositionFirstPatchOrig, skyPositionFirstPatchVerify, sizeof(BYTE)*sizeOfFirstPatch) == 0) &&
-					(memcmp(skyPositionSecondPatchOrig, skyPositionSecondPatchVerify, sizeof(BYTE)*sizeOfSecondPatch) == 0) )
+					(memcmp(skyPositionSecondPatchOrig, skyPositionSecondPatchVerify, sizeof(BYTE)*sizeOfSecondPatch) == 0) &&
+					(memcmp(skyPositionThirdPatchOrig, skyPositionThirdPatchVerify, sizeof(BYTE)*sizeOfThirdPatch) == 0) )
 				{
-					DWORD oldProtectFirst, oldProtectSecond;
+					DWORD oldProtectFirst, oldProtectSecond, oldProtectThird;
 					// This code region doesn't have write permissions, so we need to change that before we put our new code in
 					if( (VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeOfFirstPatch, PAGE_EXECUTE_READWRITE, &oldProtectFirst) != 0) &&
-						(VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, PAGE_EXECUTE_READWRITE, &oldProtectSecond) != 0) )
+						(VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, PAGE_EXECUTE_READWRITE, &oldProtectSecond) != 0) &&
+						(VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), sizeOfThirdPatch, PAGE_EXECUTE_READWRITE, &oldProtectThird) != 0) )
 					{
 						// Now we change the code to never update the sky
 						if( (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), &skyPositionFirstPatchData, sizeof(BYTE)*sizeOfFirstPatch, &size) && size == sizeof(BYTE)*sizeOfFirstPatch) &&
-							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchData, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) )
+							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), &skyPositionSecondPatchData, sizeof(BYTE)*sizeOfSecondPatch, &size) && size == sizeof(BYTE)*sizeOfSecondPatch) &&
+							(WriteProcessMemory(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), &skyPositionThirdPatchData, sizeof(BYTE)*sizeOfThirdPatch, &size) && size == sizeof(BYTE)*sizeOfThirdPatch) )
 						{
 							// Restore the old permissions
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeOfFirstPatch, oldProtectFirst, &oldProtectFirst);
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, oldProtectSecond, &oldProtectSecond);
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), sizeOfThirdPatch, oldProtectThird, &oldProtectThird);
 							return true;
 						}
 					}
