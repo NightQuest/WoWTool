@@ -148,10 +148,10 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPAGESIZE, FALSE, 100);
 	SendMessage(hwndEngineAnimationSpeedSlider, TBM_SETPOS, TRUE, 100);
 
-	// Set the min/max of the Engine sky position speed slider to 0/1444
+	// Set the min/max of the Engine sky position speed slider to 0/1440
 	SendMessage(hwndEngineSkyPositionSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)0l);
-	SendMessage(hwndEngineSkyPositionSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)1444l);
-	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPAGESIZE, FALSE, 100);
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)1440l);
+	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPAGESIZE, FALSE, 60);
 	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPOS, TRUE, 0);
 
 	// Set the min/max of the field of view slider to 0/180
@@ -241,7 +241,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	float pos3 = wm.GetEngine()->GetSkyPosition();
 	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos3));
 	ZeroMemory(tmp, 30);
-	_stprintf(tmp, _T("Sky Position: %.f"), pos3);
+	_stprintf(tmp, _T("Sky Position: %.02f"), pos3 * (24.f / 1440.f));
 	SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
 	delete[] tmp;
 	if( !wm.HasPatchedSkyPosition() )
@@ -508,7 +508,7 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
 				TCHAR *tmp = new TCHAR[30];
 				ZeroMemory(tmp, 30);
-				_stprintf(tmp, _T("Sky Position: %.f"), pos);
+				_stprintf(tmp, _T("Sky Position: %.02f"), pos * (24.f / 1440.f));
 				SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
 			}
