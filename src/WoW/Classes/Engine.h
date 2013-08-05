@@ -17,7 +17,10 @@ public:
 
 	float GetSkyPosition();
 	bool SetSkyPosition(float position);
+	BYTE GetNightSkyOpacity();
+	bool SetNightSkyOpacity(BYTE opacity);
 	bool DrawSky(bool bDrawSky);
+	bool DrawClouds(bool bDrawClouds);
 
 	bool SetAnimationSpeed(float speed);
 	bool SetGameSpeed(double speed);

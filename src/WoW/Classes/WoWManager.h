@@ -36,6 +36,9 @@ public:
 	bool HasPatchedSkyPosition();
 	bool PatchSkyPosition();
 	bool DepatchSkyPosition();
+	bool HasPatchedNightSkyOpacity();
+	bool PatchNightSkyOpacity();
+	bool DepatchNightSkyOpacity();
 
 	// Returns an instance to the Player class that contains Player specific functions
 	Engine *GetEngine() { return eng; }

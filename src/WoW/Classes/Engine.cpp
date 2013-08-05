@@ -129,6 +129,37 @@ bool Engine::SetSkyPosition(float position)
 	return true;
 }
 
+// Returns the opacity of the night sky.
+BYTE Engine::GetNightSkyOpacity()
+{
+	BYTE opacity = 0;
+	SIZE_T size = 0;
+
+	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_12340), &opacity, sizeof(BYTE), &size) || size != sizeof(BYTE) )
+		return 0;
+
+	return opacity;
+}
+
+// Sets the opacity of the night sky.
+// Returns true on success
+bool Engine::SetNightSkyOpacity(BYTE opacity)
+{
+	SIZE_T size = 0;
+
+	// Minimum value is 1
+	if( opacity == 0 )
+		opacity = 1;
+
+	// Write the new position into memory
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_12340), &opacity, sizeof(BYTE), &size) || size != sizeof(BYTE) )
+		return false;
+
+	return true;
+}
+
+// Sets whether or not to draw the sky.
+// Return true on success.
 bool Engine::DrawSky(bool bDrawSky)
 {
 	SIZE_T size = 0;
@@ -136,6 +167,20 @@ bool Engine::DrawSky(bool bDrawSky)
 
 	// Write whether or not to draw the sky into memory
 	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_DRAW_SKY), &drawSky, sizeof(BYTE), &size) || size != sizeof(BYTE) )
+		return false;
+
+	return true;
+}
+
+// Sets whether or not to draw clouds in the sky.
+// Return true on success
+bool Engine::DrawClouds(bool bDrawClouds)
+{
+	SIZE_T size = 0;
+	BYTE drawClouds = bDrawClouds ? 1 : 0;
+
+	// Write whether or not to draw the clouds into memory
+	if( !WriteProcessMemory(hProcess, (baseAddress + ENGINE_DRAW_CLOUDS), &drawClouds, sizeof(BYTE), &size) || size != sizeof(BYTE) )
 		return false;
 
 	return true;

@@ -49,7 +49,7 @@ BOOL InitApplication(HINSTANCE hInstance)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	int width = 265;
-	int height = 200;
+	int height = 250;
 
 	// Create the main window
 	hwndMain = CreateWindowEx(

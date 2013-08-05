@@ -33,6 +33,7 @@ enum WindowIDs
 	// Main Window stuff
 	HMENU_MAIN_WINDOW_SYSMENU_TOPMOST = 20,
 	HMENU_MAIN_WINDOW_SYSMENU_EASTEREGG = 21,
+
 	HMENU_MAIN_WINDOW = 110,
 	HMENU_COMMENTATOR_GROUPBOX,
 	HMENU_COMMENTATOR_CHECKBOX,
@@ -45,13 +46,18 @@ enum WindowIDs
 	HMENU_RENDER_WIREFRAME_CHECKBOX,
 	HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC,
 	HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER,
-	HMENU_ENGINE_SKY_POSITION_SLIDER,
 	HMENU_ENGINE_SKY_POSITION_CHECKBOX,
+	HMENU_ENGINE_SKY_POSITION_SLIDER,
+	HMENU_ENGINE_NIGHT_SKY_OPACITY_CHECKBOX,
+	HMENU_ENGINE_NIGHT_SKY_OPACITY_SLIDER,
+
+	HMENU_COUNT
 };
 
 // Global static variables
 static HWND		hwndMain, hwndCommentatorModeGroupBox, hwndCommentatorCheckbox, hwndCommentatorCollisionCheckbox,
 				hwndTeleportForwardButton,	hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic,
 				hwndCommentatorSpeedSlider,	hwndWireframeCheckbox, hwndEngineAnimationSpeedStatic,
-				hwndEngineAnimationSpeedSlider, hwndEngineSkyPositionCheckbox, hwndEngineSkyPositionSlider;
+				hwndEngineAnimationSpeedSlider, hwndEngineSkyPositionCheckbox, hwndEngineSkyPositionSlider,
+				hwndEngineNightSkyOpacityCheckbox, hwndEngineNightSkyOpacitySlider;
 static WoWManager	wm;

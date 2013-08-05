@@ -290,6 +290,7 @@ void WoWManager::Deinitialize()
 	{
 		Depatch();
 		DepatchSkyPosition();
+		DepatchNightSkyOpacity();
 	}
 	if( gameLocation )
 	{
@@ -523,7 +524,7 @@ TCHAR *WoWManager::GetGameLocation() { return gameLocation; }
 UINT WoWManager::GetGameVersion() { return gameVersion; }
 
 // Checks whether or not the sky position has been patched.
-// Returns: true if it's been patched
+// Returns true if it's been patched
 bool WoWManager::HasPatchedSkyPosition()
 {
 	switch( gameVersion )
@@ -563,6 +564,7 @@ bool WoWManager::HasPatchedSkyPosition()
 }
 
 // Edits the games code to stop the sky position from being updated every few minutes.
+// Returns true on success
 bool WoWManager::PatchSkyPosition()
 {
 	switch( gameVersion )
@@ -625,6 +627,7 @@ bool WoWManager::PatchSkyPosition()
 }
 
 // Edits the games code to allow the sky position to be updated every few minutes again.
+// Returns true on success
 bool WoWManager::DepatchSkyPosition()
 {
 	switch( gameVersion )
@@ -675,6 +678,117 @@ bool WoWManager::DepatchSkyPosition()
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_ADDRESS_12340), sizeOfFirstPatch, oldProtectFirst, &oldProtectFirst);
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_2_ADDRESS_12340), sizeOfSecondPatch, oldProtectSecond, &oldProtectSecond);
 							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SKY_POSITION_PATCH_3_ADDRESS_12340), sizeOfThirdPatch, oldProtectThird, &oldProtectThird);
+							return true;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Checks whether or not the night sky opacity has been patched.
+// Returns true if it's been patched
+bool WoWManager::HasPatchedNightSkyOpacity()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+
+			SIZE_T sizeOfPatch = 3;
+			BYTE nightSkyOpacityPatchOrig[3] = { NULL };
+			BYTE nightSkyOpacityPatchVerify[3] = ENGINE_NIGHT_SKY_OPACITY_PATCH_VERIFY_12340;
+			
+			// Read the code at the address we're about to check
+			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), &nightSkyOpacityPatchOrig, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+			{
+				// If the code matches what we know, it's not been patched.
+				return (memcmp(nightSkyOpacityPatchOrig, nightSkyOpacityPatchVerify, sizeof(BYTE)*sizeOfPatch) != 0);
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Edits the games code to stop the night sky opacity from being updated normally.
+// Returns true on success
+bool WoWManager::PatchNightSkyOpacity()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+
+			SIZE_T sizeOfPatch = 3;
+			BYTE nightSkyOpacityPatchOrig[3] = { NULL };
+			BYTE nightSkyOpacityPatchVerify[3] = ENGINE_NIGHT_SKY_OPACITY_PATCH_VERIFY_12340;
+			BYTE nightSkyOpacityPatchData[3] = ENGINE_NIGHT_SKY_OPACITY_PATCH_PATCH_12340;
+
+			// Read the code at the address we're about to modify
+			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), &nightSkyOpacityPatchOrig, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(nightSkyOpacityPatchOrig, nightSkyOpacityPatchVerify, sizeof(BYTE)*sizeOfPatch) == 0 )
+				{
+					DWORD oldProtect;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( (VirtualProtectEx(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), sizeOfPatch, PAGE_EXECUTE_READWRITE, &oldProtect) != 0) )
+					{
+						// Now we change the code to never update the sky
+						if( (WriteProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), &nightSkyOpacityPatchData, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+						{
+							// Restore the old permissions
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), sizeOfPatch, oldProtect, &oldProtect);
+							return true;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Edits the games code to allow the night sky opacity to update normally.
+// Returns true on success
+bool WoWManager::DepatchNightSkyOpacity()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+
+			SIZE_T sizeOfPatch = 3;
+			BYTE nightSkyOpacityPatchOrig[3] = { NULL };
+			BYTE nightSkyOpacityPatchVerify[3] = ENGINE_NIGHT_SKY_OPACITY_PATCH_PATCH_12340;
+			BYTE nightSkyOpacityPatchData[3] = ENGINE_NIGHT_SKY_OPACITY_PATCH_VERIFY_12340;
+
+			// Read the code at the address we're about to modify
+			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), &nightSkyOpacityPatchOrig, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(nightSkyOpacityPatchOrig, nightSkyOpacityPatchVerify, sizeof(BYTE)*sizeOfPatch) == 0 )
+				{
+					DWORD oldProtect;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( (VirtualProtectEx(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), sizeOfPatch, PAGE_EXECUTE_READWRITE, &oldProtect) != 0) )
+					{
+						// Now we change the code to never update the sky
+						if( (WriteProcessMemory(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), &nightSkyOpacityPatchData, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+						{
+							// Restore the old permissions
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_NIGHT_SKY_OPACITY_PATCH_ADDRESS_12340), sizeOfPatch, oldProtect, &oldProtect);
 							return true;
 						}
 					}

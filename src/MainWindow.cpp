@@ -122,6 +122,14 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
 		7, 125, 100, 23, hwnd, (HMENU)HMENU_ENGINE_SKY_POSITION_SLIDER, NULL, NULL);
 
+	hwndEngineNightSkyOpacityCheckbox = CreateWindowEx(NULL,
+		_T("Button"), _T("Sky Position"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		15, 160, 125, 15, hwnd, (HMENU)HMENU_ENGINE_NIGHT_SKY_OPACITY_CHECKBOX, NULL, NULL);
+
+	hwndEngineNightSkyOpacitySlider = CreateWindowEx(NULL,
+		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
+		7, 175, 100, 23, hwnd, (HMENU)HMENU_ENGINE_NIGHT_SKY_OPACITY_SLIDER, NULL, NULL);
+
 
 	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -134,6 +142,14 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndWireframeCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndEngineAnimationSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndEngineSkyPositionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndEngineNightSkyOpacityCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+
+	// Set the min/max of the field of view slider to 0/180
+	// We use 100 times what the real value is on the max in order to allow decimal places
+	SendMessage(hwndCameraFOVSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)0l);
+	SendMessage(hwndCameraFOVSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)18000l);
+    SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 100);
+    SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, 0);
 
 	// Set the min/max of the Commentator speed slider to 1/100000
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -154,12 +170,11 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPAGESIZE, FALSE, 60);
 	SendMessage(hwndEngineSkyPositionSlider, TBM_SETPOS, TRUE, 0);
 
-	// Set the min/max of the field of view slider to 0/180
-	// We use 100 times what the real value is on the max in order to allow decimal places
-	SendMessage(hwndCameraFOVSlider, TBM_SETRANGEMIN, TRUE, (LPARAM)0l);
-	SendMessage(hwndCameraFOVSlider, TBM_SETRANGEMAX, TRUE, (LPARAM)18000l);
-    SendMessage(hwndCameraFOVSlider, TBM_SETPAGESIZE, 0, 100);
-    SendMessage(hwndCameraFOVSlider, TBM_SETPOS, TRUE, 0);
+	// Set the min/max of the Engine sky position speed slider to 1/255
+	SendMessage(hwndEngineNightSkyOpacitySlider, TBM_SETRANGEMIN, TRUE, (LPARAM)1l);
+	SendMessage(hwndEngineNightSkyOpacitySlider, TBM_SETRANGEMAX, TRUE, (LPARAM)255l);
+	SendMessage(hwndEngineNightSkyOpacitySlider, TBM_SETPAGESIZE, FALSE, 10);
+	SendMessage(hwndEngineNightSkyOpacitySlider, TBM_SETPOS, TRUE, 0);
 
 	// Add "Always on top" to the main windows titlebar right click menu
 	HMENU hMenu = GetSystemMenu(hwnd, FALSE);
@@ -218,6 +233,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	SendMessage(hwndCommentatorCollisionCheckbox, BM_SETCHECK, (WPARAM)(wm.GetPlayer()->IsCommentatorCameraCollidable() ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.GetEngine()->HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndEngineSkyPositionCheckbox, BM_SETCHECK, (WPARAM)(wm.HasPatchedSkyPosition() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndEngineNightSkyOpacityCheckbox, BM_SETCHECK, (WPARAM)(wm.HasPatchedNightSkyOpacity() ? BST_CHECKED : BST_UNCHECKED), NULL);
 
 	float pos = wm.GetPlayer()->GetCommentatorCameraSpeed();
 	SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos*100.0f));
@@ -243,9 +259,19 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	ZeroMemory(tmp, 30);
 	_stprintf(tmp, _T("Sky Position: %.02f"), pos3 * (24.f / 1440.f));
 	SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
+
+	BYTE pos4 = wm.GetEngine()->GetNightSkyOpacity();
+	SendMessage(hwndEngineNightSkyOpacitySlider, TBM_SETPOS, TRUE, (LPARAM)(int)pos4);
+	ZeroMemory(tmp, 30);
+	_stprintf(tmp, _T("Night Sky Opacity: %u"), pos4);
+	SendMessage(hwndEngineNightSkyOpacityCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
+
 	delete[] tmp;
+	
 	if( !wm.HasPatchedSkyPosition() )
 		EnableWindow(hwndEngineSkyPositionSlider, FALSE);
+	if( !wm.HasPatchedNightSkyOpacity() )
+		EnableWindow(hwndEngineNightSkyOpacitySlider, FALSE);
 
 	return FALSE;
 }
@@ -423,6 +449,35 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 			}
 		}
 		break;
+
+	case HMENU_ENGINE_NIGHT_SKY_OPACITY_CHECKBOX:
+		{
+			if( !wm.IsAttached() )
+			{
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
+
+			if( SendMessage(hwndEngineNightSkyOpacityCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
+			{
+				if( !wm.PatchNightSkyOpacity() )
+				{
+					MessageBox(NULL, _T("Failed to enable night sky opacity"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+				EnableWindow(hwndEngineNightSkyOpacitySlider, TRUE);
+			}
+			else
+			{
+				if( !wm.DepatchNightSkyOpacity() )
+				{
+					MessageBox(NULL, _T("Failed to disable night sky opacity"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+				EnableWindow(hwndEngineNightSkyOpacitySlider, FALSE);
+			}
+		}
+		break;
 	}
 	return FALSE;
 }
@@ -484,7 +539,7 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					break;
 				}
 
-				// Set the animation speed of models to the position of the slider and update the txt to match
+				// Set the animation speed of models to the position of the slider and update the text to match
 				float pos = (float)SendMessage(hwndEngineAnimationSpeedSlider, TBM_GETPOS, 0, 0);
 				if( !wm.GetEngine()->SetAnimationSpeed(pos) )
 					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
@@ -502,7 +557,7 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					break;
 				}
 
-				// Set the sky position to the position of the slider and update the txt to match
+				// Set the sky position to the position of the slider and update the text to match
 				float pos = (float)SendMessage(hwndEngineSkyPositionSlider, TBM_GETPOS, 0, 0);
 				if( !wm.GetEngine()->SetSkyPosition(pos) )
 					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
@@ -511,6 +566,25 @@ LRESULT CALLBACK HandleMainWindowHScroll(HWND hwnd, UINT msg, WPARAM wParam, LPA
 				_stprintf(tmp, _T("Sky Position: %.02f"), pos * (24.f / 1440.f));
 				SendMessage(hwndEngineSkyPositionCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
 				delete[] tmp;
+			}
+			else if( (HWND)lParam == hwndEngineNightSkyOpacitySlider )
+			{
+				if( !wm.IsAttached() )
+				{
+					MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+
+				// Set the opacity of the night sky to the position of the slider and update the text to match
+				BYTE pos = (BYTE)SendMessage(hwndEngineNightSkyOpacitySlider, TBM_GETPOS, 0, 0);
+				if( !wm.GetEngine()->SetNightSkyOpacity(pos) )
+					MessageBox(NULL, _T("Error"), _T(""), MB_ICONERROR|MB_OK);
+				TCHAR *tmp = new TCHAR[30];
+				ZeroMemory(tmp, 30);
+				_stprintf(tmp, _T("Night Sky Opacity: %u"), pos);
+				SendMessage(hwndEngineNightSkyOpacityCheckbox, WM_SETTEXT, NULL, (LPARAM)tmp);
+				delete[] tmp;
+
 			}
 		}
 		break;
