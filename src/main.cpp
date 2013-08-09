@@ -48,7 +48,7 @@ BOOL InitApplication(HINSTANCE hInstance)
 // Initialize an instance of the program (windows and such)
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-	int width = 265;
+	int width = 300;
 	int height = 250;
 
 	// Create the main window

@@ -48,6 +48,7 @@ public:
 	float GetPosY();
 	float GetPosZ();
 	float GetPosO();
+	float GetGroundNormal();
 	bool SetPosition(Vec3 pos);
 	bool SetPosition(Vec4 pos);
 	bool SetPosition(float X, float Y, float Z, float O = 0.0f);
@@ -55,6 +56,7 @@ public:
 	bool SetPosY(float newY);
 	bool SetPosZ(float newZ);
 	bool SetPosO(float newO);
+	bool SetGroundNormal(float newNormal);
 	float GetCurrentMovementSpeed();
 	float GetWalkSpeed();
 	float GetRunSpeed();

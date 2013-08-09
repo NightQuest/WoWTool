@@ -39,6 +39,9 @@ public:
 	bool HasPatchedNightSkyOpacity();
 	bool PatchNightSkyOpacity();
 	bool DepatchNightSkyOpacity();
+	bool HasPatchedSnapPlayerToGroundNormal();
+	bool PatchSnapPlayerToGroundNormal();
+	bool DepatchSnapPlayerToGroundNormal();
 
 	// Returns an instance to the Player class that contains Player specific functions
 	Engine *GetEngine() { return eng; }

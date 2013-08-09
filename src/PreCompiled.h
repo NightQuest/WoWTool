@@ -50,6 +50,7 @@ enum WindowIDs
 	HMENU_ENGINE_SKY_POSITION_SLIDER,
 	HMENU_ENGINE_NIGHT_SKY_OPACITY_CHECKBOX,
 	HMENU_ENGINE_NIGHT_SKY_OPACITY_SLIDER,
+	HMENU_ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_CHECKBOX,
 
 	HMENU_COUNT
 };
@@ -59,5 +60,5 @@ static HWND		hwndMain, hwndCommentatorModeGroupBox, hwndCommentatorCheckbox, hwn
 				hwndTeleportForwardButton,	hwndCameraFOVStatic, hwndCameraFOVSlider, hwndCommentatorSpeedStatic,
 				hwndCommentatorSpeedSlider,	hwndWireframeCheckbox, hwndEngineAnimationSpeedStatic,
 				hwndEngineAnimationSpeedSlider, hwndEngineSkyPositionCheckbox, hwndEngineSkyPositionSlider,
-				hwndEngineNightSkyOpacityCheckbox, hwndEngineNightSkyOpacitySlider;
+				hwndEngineNightSkyOpacityCheckbox, hwndEngineNightSkyOpacitySlider, hwndSnapPlayerToGroundNormalCheckbox;
 static WoWManager	wm;

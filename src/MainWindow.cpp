@@ -92,27 +92,27 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 
 	hwndTeleportForwardButton = CreateWindowEx(NULL,
 		_T("Button"), _T("Teleport Forward"), WS_CHILD | WS_VISIBLE,
-		140, 5, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
+		175, 5, 100, 23, hwnd, (HMENU)HMENU_TELEPORT_FORWARD_BUTTON, NULL, NULL);
 
 	hwndCameraFOVStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Field of View"), WS_CHILD | WS_VISIBLE,
-		140, 55, 110, 15, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
+		175, 35, 110, 15, hwnd, (HMENU)HMENU_CAMERA_FOV_STATIC, NULL, NULL);
 
 	hwndCameraFOVSlider = CreateWindowEx(NULL,
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
-		135, 70, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
+		170, 50, 100, 23, hwnd, (HMENU)HMENU_CAMERA_FOV_SLIDER, NULL, NULL);
 
 	hwndWireframeCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Wireframe"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
-		140, 95, 70, 23, hwnd, (HMENU)HMENU_RENDER_WIREFRAME_CHECKBOX, NULL, NULL);
+		175, 95, 70, 23, hwnd, (HMENU)HMENU_RENDER_WIREFRAME_CHECKBOX, NULL, NULL);
 
 	hwndEngineAnimationSpeedStatic = CreateWindowEx(NULL,
 		_T("Static"), _T("Animation Speed"), WS_CHILD | WS_VISIBLE,
-		130, 120, 150, 15, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC, NULL, NULL);
+		165, 120, 150, 15, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_STATIC, NULL, NULL);
 
 	hwndEngineAnimationSpeedSlider = CreateWindowEx(NULL,
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
-		135, 135, 100, 23, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER, NULL, NULL);
+		170, 135, 100, 23, hwnd, (HMENU)HMENU_ENGINE_MODEL_ANIMATION_SPEED_SLIDER, NULL, NULL);
 
 	hwndEngineSkyPositionCheckbox = CreateWindowEx(NULL,
 		_T("Button"), _T("Sky Position"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
@@ -130,6 +130,10 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 		TRACKBAR_CLASS, _T(""), WS_CHILD | WS_VISIBLE | TBS_NOTICKS | TBS_ENABLESELRANGE,
 		7, 175, 100, 23, hwnd, (HMENU)HMENU_ENGINE_NIGHT_SKY_OPACITY_SLIDER, NULL, NULL);
 
+	hwndSnapPlayerToGroundNormalCheckbox = CreateWindowEx(NULL,
+		_T("Button"), _T("Snap to Ground Normal"), WS_CHILD | WS_VISIBLE | BS_TEXT | BS_AUTOCHECKBOX,
+		140, 175, 150, 15, hwnd, (HMENU)HMENU_ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_CHECKBOX, NULL, NULL);
+
 
 	// Set the font of all the UI elements, so they won't have the default blocky look
 	HFONT hfFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);
@@ -143,6 +147,7 @@ LRESULT CALLBACK HandleMainWindowCreate(HWND hwnd, UINT msg, WPARAM wParam, LPAR
 	SendMessage(hwndEngineAnimationSpeedStatic, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndEngineSkyPositionCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 	SendMessage(hwndEngineNightSkyOpacityCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
+	SendMessage(hwndSnapPlayerToGroundNormalCheckbox, WM_SETFONT, (WPARAM)hfFont, TRUE);
 
 	// Set the min/max of the field of view slider to 0/180
 	// We use 100 times what the real value is on the max in order to allow decimal places
@@ -234,6 +239,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	SendMessage(hwndWireframeCheckbox, BM_SETCHECK, (WPARAM)(wm.GetEngine()->HasRenderingFlags(RENDER_FLAG_WIREFRAME) ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndEngineSkyPositionCheckbox, BM_SETCHECK, (WPARAM)(wm.HasPatchedSkyPosition() ? BST_CHECKED : BST_UNCHECKED), NULL);
 	SendMessage(hwndEngineNightSkyOpacityCheckbox, BM_SETCHECK, (WPARAM)(wm.HasPatchedNightSkyOpacity() ? BST_CHECKED : BST_UNCHECKED), NULL);
+	SendMessage(hwndSnapPlayerToGroundNormalCheckbox, BM_SETCHECK, (WPARAM)(wm.HasPatchedSnapPlayerToGroundNormal() ? BST_CHECKED : BST_UNCHECKED), NULL);
 
 	float pos = wm.GetPlayer()->GetCommentatorCameraSpeed();
 	SendMessage(hwndCommentatorSpeedSlider, TBM_SETPOS, TRUE, (LPARAM)(int)floor(pos*100.0f));
@@ -475,6 +481,33 @@ LRESULT CALLBACK HandleMainWindowCommand(HWND hwnd, UINT msg, WPARAM wParam, LPA
 					break;
 				}
 				EnableWindow(hwndEngineNightSkyOpacitySlider, FALSE);
+			}
+		}
+		break;
+
+	case HMENU_ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_CHECKBOX:
+		{
+			if( !wm.IsAttached() )
+			{
+				MessageBox(NULL, _T("WoWManager is not attached to WoW!"), _T("Error!"), MB_ICONERROR|MB_OK);
+				break;
+			}
+
+			if( SendMessage(hwndSnapPlayerToGroundNormalCheckbox, BM_GETCHECK, (WPARAM)NULL, (LPARAM)NULL) == BST_CHECKED )
+			{
+				if( !wm.PatchSnapPlayerToGroundNormal() )
+				{
+					MessageBox(NULL, _T("Failed to force player to snap to ground normal"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
+			}
+			else
+			{
+				if( !wm.DepatchSnapPlayerToGroundNormal() )
+				{
+					MessageBox(NULL, _T("Failed to un-force player to snap to ground normal"), _T("Error!"), MB_ICONERROR|MB_OK);
+					break;
+				}
 			}
 		}
 		break;

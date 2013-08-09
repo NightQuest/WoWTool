@@ -291,6 +291,7 @@ void WoWManager::Deinitialize()
 		Depatch();
 		DepatchSkyPosition();
 		DepatchNightSkyOpacity();
+		DepatchSnapPlayerToGroundNormal();
 	}
 	if( gameLocation )
 	{
@@ -800,3 +801,115 @@ bool WoWManager::DepatchNightSkyOpacity()
 
 	return false;
 }
+
+// Checks whether or not the snapping the player to the ground's normal has been patched.
+// Returns true if it's been patched
+bool WoWManager::HasPatchedSnapPlayerToGroundNormal()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+
+			SIZE_T sizeOfPatch = 2;
+			BYTE snapPlayerToGroundsNormalPatchOrig[2] = { NULL };
+			BYTE snapPlayerToGroundsNormalPatchVerify[2] = ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_VERIFY_12340;
+			
+			// Read the code at the address we're about to check
+			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), &snapPlayerToGroundsNormalPatchOrig, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+			{
+				// If the code matches what we know, it's not been patched.
+				return (memcmp(snapPlayerToGroundsNormalPatchOrig, snapPlayerToGroundsNormalPatchVerify, sizeof(BYTE)*sizeOfPatch) != 0);
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Edits the games code to force the player to always be snapped to the ground's normal.
+// Returns true on success
+bool WoWManager::PatchSnapPlayerToGroundNormal()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+
+			SIZE_T sizeOfPatch = 2;
+			BYTE snapPlayerToGroundsNormalPatchOrig[2] = { NULL };
+			BYTE snapPlayerToGroundsNormalPatchVerify[2] = ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_VERIFY_12340;
+			BYTE snapPlayerToGroundsNormalPatchData[2] = ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_PATCH_12340;
+
+			// Read the code at the address we're about to modify
+			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), &snapPlayerToGroundsNormalPatchOrig, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(snapPlayerToGroundsNormalPatchOrig, snapPlayerToGroundsNormalPatchVerify, sizeof(BYTE)*sizeOfPatch) == 0 )
+				{
+					DWORD oldProtect;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( (VirtualProtectEx(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), sizeOfPatch, PAGE_EXECUTE_READWRITE, &oldProtect) != 0) )
+					{
+						// Now we change the code to never update the sky
+						if( (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), &snapPlayerToGroundsNormalPatchData, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+						{
+							// Restore the old permissions
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), sizeOfPatch, oldProtect, &oldProtect);
+							return true;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+
+// Edits the games code to not force the player to be snapped to the ground's normal anymore.
+// Returns true on success
+bool WoWManager::DepatchSnapPlayerToGroundNormal()
+{
+	switch( gameVersion )
+	{
+	case FINAL_WOTLK:
+		{
+			SIZE_T size = 0;
+
+			SIZE_T sizeOfPatch = 2;
+			BYTE snapPlayerToGroundsNormalPatchOrig[2] = { NULL };
+			BYTE snapPlayerToGroundsNormalPatchVerify[2] = ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_PATCH_12340;
+			BYTE snapPlayerToGroundsNormalPatchData[2] = ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_VERIFY_12340;
+
+			// Read the code at the address we're about to modify
+			if( (ReadProcessMemory(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), &snapPlayerToGroundsNormalPatchOrig, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+			{
+				// Make sure the code read what matches what we know - we don't want to be writing to the wrong address
+				if( memcmp(snapPlayerToGroundsNormalPatchOrig, snapPlayerToGroundsNormalPatchVerify, sizeof(BYTE)*sizeOfPatch) == 0 )
+				{
+					DWORD oldProtect;
+					// This code region doesn't have write permissions, so we need to change that before we put our new code in
+					if( (VirtualProtectEx(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), sizeOfPatch, PAGE_EXECUTE_READWRITE, &oldProtect) != 0) )
+					{
+						// Now we change the code to never update the sky
+						if( (WriteProcessMemory(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), &snapPlayerToGroundsNormalPatchData, sizeof(BYTE)*sizeOfPatch, &size) && size == sizeof(BYTE)*sizeOfPatch) )
+						{
+							// Restore the old permissions
+							VirtualProtectEx(hProcess, (baseAddress + ENGINE_SNAP_PLAYER_TO_GROUND_NORMAL_PATCH_ADDRESS_12340), sizeOfPatch, oldProtect, &oldProtect);
+							return true;
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	return false;
+}
+

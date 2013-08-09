@@ -480,6 +480,22 @@ float Player::GetPosO()
 	return pO;
 }
 
+// Returns the grounds normal that's below the player
+float Player::GetGroundNormal()
+{
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	float pGN = 0.0;
+	SIZE_T size = 0;
+
+	// Read the current ground normal from below the player
+	ReadProcessMemory(hProcess, (MovementInfo + PLAYER_GROUND_NORMAL_OFFSET_12340), &pGN, sizeof(float), &size);
+
+	return pGN;
+}
+
 // Sets the XYZO coordinates of the player using a vector
 // Returns true on success
 bool Player::SetPosition(Vec4 pos)
@@ -563,6 +579,22 @@ bool Player::SetPosO(float newO)
 
 	// Set the current position of the players orientation
 	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_12340), &newO, sizeof(float), &size) || size != sizeof(float) )
+		return false;
+
+	return true;
+}
+
+// Set the Ground Normal that's below the player
+// Returns true on success
+bool Player::SetGroundNormal(float newNormal)
+{
+	SIZE_T size = 0;
+	PBYTE MovementInfo = GetPlayerMovementInfoBase();
+	if( MovementInfo == NULL )
+		return false;
+
+	// Set the ground normal that's below the player
+	if( !WriteProcessMemory(hProcess, (MovementInfo + PLAYER_POSITION_O_OFFSET_12340), &newNormal, sizeof(float), &size) || size != sizeof(float) )
 		return false;
 
 	return true;
