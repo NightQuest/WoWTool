@@ -226,7 +226,7 @@ LRESULT CALLBACK HandleMainWindowShowWindow(HWND hwnd, UINT msg, WPARAM wParam, 
 	CloseHandle( hProcessSnap );
 
 	// Attach WoWManager to Wow.exe
-	if( !dwPID || !wm.Attach(dwPID) )
+	if( !dwPID || !wm.Attach(dwPID) || !wm.GetEngine()->IsFullyLoadedInGame() )
 	{
 		MessageBox(NULL, _T("Cannot attach to WoW!\r\nPlease make sure that WoW is running and fully logged in, and you're running this tool as Administrator!"), _T("Error!"), MB_ICONERROR | MB_OK);
 		PostMessage(hwnd, WM_CLOSE, 0, 0);

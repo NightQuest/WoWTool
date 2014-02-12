@@ -10,6 +10,8 @@ public:
 	Engine(HANDLE hProc, PBYTE baseAddr) : hProcess(hProc), baseAddress(baseAddr) {}
 	~Engine() {}
 
+	bool IsFullyLoadedInGame();
+
 	DWORD GetRenderingFlags();
 	bool HasRenderingFlags(DWORD flags);
 	bool SetRenderingFlags(DWORD flags);

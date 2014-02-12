@@ -52,6 +52,19 @@ double Engine::GetGameSpeed()
 	return speed;
 }
 
+// Checks to see if client has fully loaded into the game environment
+// Returns true if it has, false if not.
+bool Engine::IsFullyLoadedInGame()
+{
+	bool inGame = false;
+	SIZE_T size = 0;
+
+	if( !ReadProcessMemory(hProcess, (baseAddress + ENGINE_IS_FULLY_LOADED_INGAME), &inGame, sizeof(bool), &size) || size != sizeof(bool) )
+		return false;
+
+	return inGame;
+}
+
 // Returns the bitmask that the game uses to decide what and how to render the scene
 // Default: 0x1F104F73
 DWORD Engine::GetRenderingFlags()
