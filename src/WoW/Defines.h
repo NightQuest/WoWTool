@@ -49,10 +49,26 @@ enum RenderingFlags
 	RENDER_FLAG_PARTICULATES							= 0x02000000, // 25
 	RENDER_FLAG_TERRAIN_LOW_DETAIL						= 0x04000000, // 26
 	RENDER_FLAG_SPECULAR								= 0x08000000, // 27
-	RENDER_FLAG_UNK21									= 0x10000000, // 28 - DetailDoodad Shaders (Pixel/Vertex)?
+	RENDER_FLAG_UNK21									= 0x10000000, // 28 - has something to do with RENDER2_FLAG_DETAIL_DOODAD_SHADERS
 	RENDER_FLAG_WIREFRAME								= 0x20000000, // 29
 	RENDER_FLAG_VERTEX_NORMALS							= 0x40000000, // 30
 	RENDER_FLAG_UNK22									= 0x80000000, // 31
+};
+
+// Rendering Flags 2 - 0x4 past RenderingFlags
+enum RenderingFlags2
+{
+	RENDER2_FLAG_DETAIL_DOODAD_SHADERS					= 0x00000001, // 00 - DetailDoodad Shaders (Pixel/Vertex)
+	RENDER2_FLAG_HARDWARE_PCF							= 0x00000002, // 01
+	RENDER2_FLAG_PROJECTED_TEXTURES						= 0x00000004, // 02
+};
+
+// Rendering Flags 3 - 0x8 past RenderingFlags
+enum RenderingFlags3
+{
+	RENDER3_FLAG_M2										= 0x00000001, // 00
+	RENDER3_UNK01										= 0x00000002, // 01
+	RENDER3_UNK02										= 0x00000004, // 02
 };
 
 // Player flags
