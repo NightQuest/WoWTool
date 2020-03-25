@@ -6,11 +6,18 @@
 #define WIN32_MEAN_AND_LEAN
 #define _USE_MATH_DEFINES
 #include <windows.h>
-#include <commctrl.h>
 #include <tlhelp32.h>
 #include <tchar.h>
 #include <iostream>
 #include <math.h>
+
+#include <commctrl.h>
+#pragma comment(lib,"comctl32.lib")
+#pragma comment(linker, "/manifestdependency:"\
+"\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
+
+#pragma comment(lib, "Version.lib")
 
 // WoW stuff
 #include "WoW\Defines.h"

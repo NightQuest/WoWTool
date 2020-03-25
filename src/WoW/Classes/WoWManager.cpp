@@ -17,38 +17,20 @@ WoWManager::WoWManager()
 	cam = NULL;
 
 	// Grab a token for the current process with adjustment process
-	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
-	if( !OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) )
+	if( OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &hToken) )
 	{
-		delete this;
-		const_cast<WoWManager *>(this) = NULL;
-		return;
-	}
+		// Lookup the priviledge for debug
+		if( LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid) )
+		{
+			tp.PrivilegeCount = 1;
+			tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-	// Lookup the priviledge for debug
-	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
-	if( !LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &tp.Privileges[0].Luid) )
-	{
+			// Enable Debug priviledges
+			AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL);
+		}
+
 		CloseHandle(hToken);
-		delete this;
-		const_cast<WoWManager *>(this) = NULL;
-		return;
 	}
-
-	tp.PrivilegeCount = 1;
-	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-
-	// Enable Debug priviledges
-	// On fail, delete the class instance, and set the pointers to it to NULL (fail)
-	if( !AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(tp), NULL, NULL) )
-	{
-		CloseHandle(hToken);
-		delete this;
-		const_cast<WoWManager *>(this) = NULL;
-		return;
-	}
-
-	CloseHandle(hToken);
 }
 
 // Destructor for WoWManager, will remove SeDebug from the programs privilege level and Detach the program from WoW
